@@ -38,7 +38,7 @@ def calculate_IK_loss(angle_solution, the_NANLOSS_of_illegal_solution_with_num_a
                 break
 
         if num_illegal == 8:
-            IK_loss = IK_loss + the_NANLOSS_of_illegal_solution_with_num_and_Nan #!!!!!优先惩罚nan产生项，loss定义在计算过程中
+            IK_loss = IK_loss + find_closest(angle_solution, where_is_the_illegal, the_NANLOSS_of_illegal_solution_with_num_and_Nan) #!!!!!优先惩罚nan产生项，loss定义在计算过程中
 
             num_incorrect += 1
 
@@ -81,7 +81,7 @@ def calculate_IK_loss_test(angle_solution):
                 break
 
         if num_illegal == 8:
-            IK_loss = IK_loss + find_closest(angle_solution, where_is_the_illegal)
+            IK_loss = IK_loss + find_closest(angle_solution, where_is_the_illegal, the_NANLOSS_of_illegal_solution_with_num_and_Nan=torch.tensor(0))
 
             IK_loss_test_incorrect += 1
 

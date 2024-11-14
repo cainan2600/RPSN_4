@@ -142,6 +142,8 @@ def calculate_IK(input_tar, MLP_output_base, a, d, alpha):
 
         num_Error2 += 1
 
+        # print("从角3出去的angle_solution: ", angle_solution)
+
         return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
 
     else:

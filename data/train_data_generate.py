@@ -15,43 +15,78 @@ def data_generate(i):
     d_IK = torch.tensor([0.1807, 0, 0, 0.17415, 0.11985, 0.11655])
     alpha_IK = torch.FloatTensor([math.pi / 2, 0, 0, math.pi / 2, -math.pi / 2, 0])
     for a in range (i):
+        if a % 9 == 0:
+            data_echo = []
 
-        data_echo = []
+            yuanxin_x, yuanxin_y, yaw_yuanxin = generrate_yuanxin()
 
-        yuanxin_x, yuanxin_y, yaw_yuanxin = generrate_yuanxin()
+            yuanxin = [0, 0, yaw_yuanxin, yuanxin_x, yuanxin_y, 0]
+            yuanxin = [round(val_yuanxin, 3) for val_yuanxin in yuanxin]
+            yuanxin_tensor = torch.FloatTensor([yuanxin])
 
-        yuanxin = [0, 0, yaw_yuanxin, yuanxin_x, yuanxin_y, 0]
-        yuanxin = [round(val_yuanxin, 3) for val_yuanxin in yuanxin]
-        yuanxin_tensor = torch.FloatTensor([yuanxin])
+            for num_data in range(np.random.randint(1, 8)):
 
-        for num_data in range(np.random.randint(1, 8)):
+                MLP_output_base = shaping(yuanxin_tensor)
+                # 如果当前底盘位置和物品点位IK出现错误无解则随机产生物品点，直到能够解出
+                num_incorrect = 1
+                while num_incorrect == 1:
+                    # 取在移动底盘不同时，同时在机械臂可达范围内的的点 
+                    tensor = generrate_dian(yuanxin[3], yuanxin[4])
+                    # IK检查
+                    IK_test_tensor = torch.FloatTensor([tensor])
+                    # 转换为输入IK的旋转矩阵
+                    input_tar = shaping(IK_test_tensor).view(4, 4)
+                    angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan = calculate_IK(
+                                            input_tar, MLP_output_base, a_IK, d_IK, alpha_IK
+                        )
+                    IK_loss, num_incorrect, num_correct = calculate_IK_loss(
+                        angle_solution, the_NANLOSS_of_illegal_solution_with_num_and_Nan
+                        )
 
-            MLP_output_base = shaping(yuanxin_tensor)
-            # 如果当前底盘位置和物品点位IK出现错误无解则随机产生物品点，直到能够解出
-            num_incorrect = 1
-            while num_incorrect == 1:
-                # 取在移动底盘不同时，同时在机械臂可达范围内的的点 
-                tensor = generrate_dian(yuanxin[3], yuanxin[4])
-                # IK检查
-                IK_test_tensor = torch.FloatTensor([tensor])
-                # 转换为输入IK的旋转矩阵
-                input_tar = shaping(IK_test_tensor).view(4, 4)
-                angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan = calculate_IK(
-                                        input_tar, MLP_output_base, a_IK, d_IK, alpha_IK
-                    )
-                IK_loss, num_incorrect, num_correct = calculate_IK_loss(
-                    angle_solution, the_NANLOSS_of_illegal_solution_with_num_and_Nan
-                    )
+                data_echo.append(tensor)
 
-            data_echo.append(tensor)
+            list_0 = [0, 0, 0, 0, 0, 0]
+            while  num_data < 6:
+                data_echo.append(list_0)
+                num_data += 1
 
-        list_0 = [0, 0, 0, 0, 0, 0]
-        while  num_data < 6:
-            data_echo.append(list_0)
-            num_data += 1
+            data.append(data_echo)
+            # print(data_echo)
+            # print("完成一组", a)
+        else:
+            data_echo = []
 
-        data.append(data_echo)
-        # print("完成一组", a)
+            yuanxin_x, yuanxin_y, yaw_yuanxin = generrate_yuanxin()
+
+            yuanxin = [0, 0, yaw_yuanxin, yuanxin_x, yuanxin_y, 0]
+            yuanxin = [round(val_yuanxin, 3) for val_yuanxin in yuanxin]
+            yuanxin_tensor = torch.FloatTensor([yuanxin])
+            iiii = 1
+            while iiii<8:
+
+                MLP_output_base = shaping(yuanxin_tensor)
+                # 如果当前底盘位置和物品点位IK出现错误无解则随机产生物品点，直到能够解出
+                num_incorrect = 1
+                while num_incorrect == 1:
+                    # 取在移动底盘不同时，同时在机械臂可达范围内的的点 
+                    tensor = generrate_dian(yuanxin[3], yuanxin[4])
+                    # IK检查
+                    IK_test_tensor = torch.FloatTensor([tensor])
+                    # 转换为输入IK的旋转矩阵
+                    input_tar = shaping(IK_test_tensor).view(4, 4)
+                    angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan = calculate_IK(
+                                            input_tar, MLP_output_base, a_IK, d_IK, alpha_IK
+                        )
+                    IK_loss, num_incorrect, num_correct = calculate_IK_loss(
+                        angle_solution, the_NANLOSS_of_illegal_solution_with_num_and_Nan
+                        )
+
+                iiii += 1
+                data_echo.append(tensor)
+            # print(data_echo)
+
+            data.append(data_echo)
+            # print("完成一组", a)
     
     data_tensor = torch.FloatTensor(data)
 
@@ -113,11 +148,11 @@ def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
 if __name__ == "__main__":
 
-    save_dir_train = '/home/cn/RPSN_3/data/data_cainan/5000/train'
-    file_name_txt = 'train_dataset_5000.txt'
-    file_name_tensor = 'train_dataset_5000.pt'
+    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/1000/train'
+    file_name_txt = 'train_dataset_1000.txt'
+    file_name_tensor = 'train_dataset_1000.pt'
 
-    data, data_tensor = data_generate(5000)
+    data, data_tensor = data_generate(1000)
 
     save_data(data, save_dir_train, file_name_txt)
     save_data_tensor(data_tensor, save_dir_train, file_name_tensor)

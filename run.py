@@ -22,7 +22,7 @@ class main():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
-        self.parser.add_argument('--learning_rate', type=float, default=0.0025, help='learning rate (default: 0.003)')
+        self.parser.add_argument('--learning_rate', type=float, default=0.005, help='learning rate (default: 0.003)')
         self.parser.add_argument('--epochs', type=int, default=600, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
         self.parser.add_argument('--num_train', type=int, default=1000)
@@ -32,24 +32,24 @@ class main():
         # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # 训练集数据导入
-        self.load_train_data = torch.load('/home/cn/RPSN_3/data/data_cainan/5000/train/train_dataset_5000.pt')
+        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/1000/train/train_dataset_1000.pt')
         self.data_train = TensorDataset(self.load_train_data[:self.args.num_train])
         self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=True)
         # 测试集数据导入
-        self.load_test_data = torch.load('/home/cn/RPSN_3/data/data_cainan/5000/test/test_dataset_400.pt')
+        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000/test/test_dataset_400.pt')
         self.data_test = TensorDataset(self.load_test_data)
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_3/work_dir/test10_MLP18_600epco_1260hiden_1000data_0.0025rate'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test3_MLP3_new_600epco_1024hiden_1000data_0.005rate_adam'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
         # 选择模型及参数
-        self.num_i = 42
-        self.num_h = 1260
+        self.num_i = 6
+        self.num_h = 64
         self.num_o = 3
-        self.model = MLP_18
+        self.model = MLP_3
         
         # 如果是接着训练则输入前面的权重路径
         self.model_path = r''
@@ -84,6 +84,7 @@ class main():
         learning_rate = self.args.learning_rate
         model = self.model.MLP_self(num_i , num_h, num_o) 
         optimizer = torch.optim.Adagrad(model.parameters(), lr=learning_rate, weight_decay=0.000)  # 定义优化器
+        # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.000)
         model_path = self.model_path
 
         if os.path.exists(model_path):          
@@ -112,12 +113,16 @@ class main():
                 inputs_bxxx6 = data[0]
                 # 将batch_size中的每一组数据输入网络
                 for inputs_xx6 in inputs_bxxx6:
-
-                    # 将7x6转换为1x42
+                    # inputs = inputs_xx6
+                    # 将7x6打乱并转换为1x42
                     inputs_xx6 = inputs_xx6[torch.randperm(inputs_xx6.size(0))]
-                    # print(inputs_xx6, inputs_xx6.size())
-                    inputs = shaping_inputs_xx6_to_1xx(inputs_xx6)
+                    # # print(inputs_xx6, inputs_xx6.size())
+                    # inputs = shaping_inputs_xx6_to_1xx(inputs_xx6)
+                    inputs = inputs_xx6
+
+
                     intermediate_outputs = model(inputs)
+                    # print(intermediate_outputs.size())
 
                     # # 将1x42输入转为7x1x6,
                     # input_tar = shaping_inputs_1xx_to_xx1x6(inputs, num_i) # 得到变换矩阵
@@ -143,7 +148,7 @@ class main():
 
                     # 计算 IK_loss_batch
                     IK_loss_batch = torch.tensor(0.0, requires_grad=True)
-                    # IK_loss2 = torch.tensor(0.0, requires_grad=True)
+                    IK_loss2 = torch.tensor(0.0, requires_grad=True)
 
                     num_all_have_solution = 0
                     num_not_all_0 = 0
@@ -173,12 +178,14 @@ class main():
                             num_incorrect = num_incorrect + num_NOError1
                             num_correct = num_correct + num_NOError2
 
-                    # 不为0代表该组不是全部有解,即算法失败
+                    # 不是每一组都有解即为失败
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
-                    # IK_loss2 = IK_loss2 + (1000 - NUM_all_have_solution)
-                    # IK_loss_batch = IK_loss_batch + IK_loss2
+                    else:
+                        IK_loss2 = IK_loss2 + 1
 
+                        IK_loss_batch = IK_loss_batch + IK_loss2
+                    # print(IK_loss2)
                     IK_loss_batch.retain_grad()
 
                     optimizer.zero_grad()  # 梯度初始化为零，把loss关于weight的导数变成0
@@ -229,8 +236,11 @@ class main():
                     inputs_bxxx6_test = data_test[0]
                     for inputs_xx6_test in inputs_bxxx6_test:
                         inputs_xx6_test = inputs_xx6_test[torch.randperm(inputs_xx6_test.size(0))]
-                        inputs_test = shaping_inputs_xx6_to_1xx(inputs_xx6_test)
+                        # inputs_test = shaping_inputs_xx6_to_1xx(inputs_xx6_test)
+                        inputs_test = inputs_xx6_test
                         intermediate_outputs_test = model(inputs_test)
+                        # intermediate_outputs_test = intermediate_outputs_test.mean(dim=0)
+                        # print(intermediate_outputs_test,intermediate_outputs_test.size())
                         input_tar_test = shaping(inputs_xx6_test)
                         outputs_test = torch.empty((0, 6))
                         pinjie1 = torch.cat([intermediate_outputs_test, torch.zeros(1).detach()])
