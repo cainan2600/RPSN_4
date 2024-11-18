@@ -28,8 +28,8 @@ def data_generate(i):
 
                 MLP_output_base = shaping(yuanxin_tensor)
                 # 如果当前底盘位置和物品点位IK出现错误无解则随机产生物品点，直到能够解出
-                num_incorrect = 1
-                while num_incorrect == 1:
+                num_correct = 0
+                while num_correct < 2:
                     # 取在移动底盘不同时，同时在机械臂可达范围内的的点 
                     tensor = generrate_dian(yuanxin[3], yuanxin[4])
                     # IK检查
@@ -52,7 +52,7 @@ def data_generate(i):
 
             data.append(data_echo)
             # print(data_echo)
-            # print("完成一组", a)
+            print("完成一组", a)
         else:
             data_echo = []
 
@@ -66,8 +66,8 @@ def data_generate(i):
 
                 MLP_output_base = shaping(yuanxin_tensor)
                 # 如果当前底盘位置和物品点位IK出现错误无解则随机产生物品点，直到能够解出
-                num_incorrect = 1
-                while num_incorrect == 1:
+                num_correct = 0
+                while num_correct < 2:
                     # 取在移动底盘不同时，同时在机械臂可达范围内的的点 
                     tensor = generrate_dian(yuanxin[3], yuanxin[4])
                     # IK检查
@@ -86,7 +86,7 @@ def data_generate(i):
             # print(data_echo)
 
             data.append(data_echo)
-            # print("完成一组", a)
+            print("完成一组", a)
     
     data_tensor = torch.FloatTensor(data)
 
@@ -112,7 +112,7 @@ def generrate_dian(yuanxin_x, yuanxin_y):
         y = np.random.uniform(0, 2.6)
         distance_yuan_and_dian = math.sqrt((x - yuanxin_x)**2 + (y - yuanxin_y)**2)
 
-    z = np.random.uniform(1, 1.1)
+    z = np.random.uniform(0, 0.1)
 
     yaw = np.random.uniform(-np.pi, np.pi)
     pitch = np.random.uniform(-(np.pi)/2, (np.pi)/2)
@@ -148,11 +148,11 @@ def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
 if __name__ == "__main__":
 
-    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/1000/train'
-    file_name_txt = 'train_dataset_1000.txt'
-    file_name_tensor = 'train_dataset_1000.pt'
+    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/5000-fk/train'
+    file_name_txt = 'train_dataset_5000.txt'
+    file_name_tensor = 'train_dataset_5000.pt'
 
-    data, data_tensor = data_generate(1000)
+    data, data_tensor = data_generate(5000)
 
     save_data(data, save_dir_train, file_name_txt)
     save_data_tensor(data_tensor, save_dir_train, file_name_tensor)

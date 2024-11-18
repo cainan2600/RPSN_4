@@ -23,31 +23,31 @@ class main():
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
         self.parser.add_argument('--learning_rate', type=float, default=0.005, help='learning rate (default: 0.003)')
-        self.parser.add_argument('--epochs', type=int, default=600, help='gradient clip value (default: 300)')
+        self.parser.add_argument('--epochs', type=int, default=10, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
-        self.parser.add_argument('--num_train', type=int, default=1000)
+        self.parser.add_argument('--num_train', type=int, default=2000)
         self.args = self.parser.parse_args()
 
         # 使用cuda!!!!!!!!!!!!!!!未补齐
         # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # 训练集数据导入
-        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/1000/train/train_dataset_1000.pt')
+        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/train/train_dataset_5000.pt')
         self.data_train = TensorDataset(self.load_train_data[:self.args.num_train])
         self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=True)
         # 测试集数据导入
-        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000/test/test_dataset_400.pt')
+        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/test/test_dataset_400.pt')
         self.data_test = TensorDataset(self.load_test_data)
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test3_MLP3_new_600epco_1024hiden_1000data_0.005rate_adam'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test12_MLP3_new_600epco_1024hiden_2000data_fk_0.005ate_loss1_train_all_random'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
         # 选择模型及参数
         self.num_i = 6
-        self.num_h = 64
+        self.num_h = 128
         self.num_o = 3
         self.model = MLP_3
         
@@ -74,6 +74,7 @@ class main():
         echo_loss = []
         echo_loss_test = []
         NUM_ALL_HAVE_SOLUTION = []
+        NUM_ALL_HAVE_SOLUTION_test = []
         # NUM_2_to_1 = []
         # NUM_mid = []
         # NUM_lar = []
@@ -182,7 +183,7 @@ class main():
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
                     else:
-                        IK_loss2 = IK_loss2 + 1
+                        IK_loss2 = IK_loss2 + 10
 
                         IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
@@ -226,6 +227,7 @@ class main():
             data_loader_test = self.data_loader_test
             num_incorrect_test = 0
             num_correct_test = 0
+            NUM_all_have_solution_test = 0
             # num_2_to_1 = 0
             # num_mid = 0
             # num_lar = 0
@@ -252,8 +254,12 @@ class main():
                         # 计算 IK_loss_batch
                         IK_loss_batch_test = torch.tensor(0.0, requires_grad=True)
                         IK_loss3_test = torch.tensor(0.0, requires_grad=True)
+                        num_all_have_solution_test = 0
+                        num_not_all_0_test = 0                        
                         for i in range(len(input_tar_test)):
-                            if torch.all(inputs_xx6_test[i].ne(0)):                            
+                            if torch.all(inputs_xx6_test[i].ne(0)):
+                                num_not_all_0_test += 1
+                                num_all_have_solution_test += 1                            
                                 angle_solution = IK.calculate_IK_test(
                                     input_tar_test[i], 
                                     MLP_output_base_test, 
@@ -263,13 +269,17 @@ class main():
                                 # IK时存在的错误打印
                                 IK_loss_test1, IK_loss_test_incorrect, IK_loss_test_correct = IK_loss.calculate_IK_loss_test(angle_solution)
                                 # 计算IK_loss时存在的错误与正确的打印
+                                num_all_have_solution_test = num_all_have_solution_test - IK_loss_test_incorrect
                                 num_incorrect_test = num_incorrect_test + IK_loss_test_incorrect
                                 num_correct_test = num_correct_test + IK_loss_test_correct
                                 # 计算IK_loss
-                                IK_loss_batch_test = IK_loss_batch_test + IK_loss_test1
+                                # IK_loss_batch_test = IK_loss_batch_test + IK_loss_test1
+                        if num_all_have_solution_test == num_not_all_0_test:
+                            NUM_all_have_solution_test += 1                        
 
             print("num_correct_test", num_correct_test)
             print("num_incorrect_test", num_incorrect_test)
+            print("NUM_all_have_solution_test", NUM_all_have_solution_test)
             # print('num_2_to1', num_2_to_1)
             # print('num_sametime_solution', num_sametime_solution)
 
@@ -278,6 +288,7 @@ class main():
             # NUM_lar.append(num_lar)
             NUM_incorrect_test.append(num_incorrect_test)
             NUM_correct_test.append(num_correct_test)
+            NUM_ALL_HAVE_SOLUTION_test.append(NUM_all_have_solution_test)
             # NUM_sametime_solution.append(num_sametime_solution)
 
             print('[%d,%d] loss:%.03f' % (epoch, start_epoch + epochs-1, sum_loss / (len(data_loader_train))), "-" * 100)
@@ -288,8 +299,7 @@ class main():
         plot_train(self.checkpoint_dir, start_epoch, epochs, self.args.num_train, NUMError1, NUMError2, NUM_incorrect, NUM_correct)
         plot_train_loss(self.checkpoint_dir, start_epoch, epochs, echo_loss)
         plot_no_not_have_solution(self.checkpoint_dir, start_epoch, epochs, NUM_ALL_HAVE_SOLUTION)
-
-        # plot_test_loss(self.checkpoint_dir, start_epoch, epochs, echo_loss_test)
+        plot_no_not_have_solution_test(self.checkpoint_dir, start_epoch, epochs, NUM_ALL_HAVE_SOLUTION_test)        # plot_test_loss(self.checkpoint_dir, start_epoch, epochs, echo_loss_test)
         # plot_2_to_1(self.checkpoint_dir, start_epoch, epochs, NUM_2_to_1, NUM_mid, NUM_lar)
         # plot_sametime_solution(self.checkpoint_dir, start_epoch, epochs, NUM_sametime_solution)
 

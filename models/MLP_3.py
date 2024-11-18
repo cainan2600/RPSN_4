@@ -2,41 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class AttentionLayer(nn.Module):
-    def __init__(self, input_dim, hidden_dim):
-        super(AttentionLayer, self).__init__()
-        self.query = nn.Linear(input_dim, hidden_dim)  # Q的线性变换
-        self.key = nn.Linear(input_dim, hidden_dim)    # K的线性变换
-        self.value = nn.Linear(input_dim, hidden_dim)  # V的线性变换
-        self.scale = torch.sqrt(torch.FloatTensor([hidden_dim]))  # 归一化系数
-
-    def forward(self, x):        
-        # 计算 Q, K, V
-        Q = self.query(x)
-        K = self.key(x)
-        V = self.value(x)
-
-        # 计算 Q 和 K 的点积，得到注意力权重矩阵
-        attention_scores = Q * K / self.scale
-        print(attention_scores)
-
-        # 使用 softmax 计算权重
-        attention_weights = F.softmax(attention_scores, dim=-1)
-
-        # 加权求和
-        attended_values = attention_weights * V
-        
-        return attended_values
 
 class MLP_self(nn.Module):
     def __init__(self, num_i, num_h, num_o):
         super(MLP_self, self).__init__()
 
-        # 初始化注意力层
-        self.attention = AttentionLayer(num_i, num_h) # 6x64
-        self.relu = torch.nn.ReLU()
 
-        self.linear = torch.nn.Linear(num_i, num_h, bias=False) # 6*64
+        self.linear = torch.nn.Linear(num_i, num_h) # 6*64
         self.relu = torch.nn.ReLU()        
 
         # MLP 层
@@ -67,7 +39,7 @@ class MLP_self(nn.Module):
         # x = self.relu(attention_out)
 
         x = self.linear(input)
-        # x = self.relu(x)        
+        x = self.relu(x)        
 
         # 经过 MLP 层
         x = self.linear1(x)
