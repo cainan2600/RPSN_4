@@ -53,8 +53,6 @@ class MLP_self(nn.Module):
         self.relu10 = torch.nn.ReLU()
         self.linear12 = torch.nn.Linear(num_h*32, num_h*32) # 2048*2048
         self.relu12 = torch.nn.ReLU()
-        self.linear13 = torch.nn.Linear(num_h*32, num_h*32) # 2048*2048
-        self.relu13 = torch.nn.ReLU()
         self.linear11 = torch.nn.Linear(num_h*32, num_h*16) # 2048*1024
         self.relu11 = torch.nn.ReLU()
 
@@ -93,8 +91,6 @@ class MLP_self(nn.Module):
         x = self.relu10(x)
         x = self.linear12(x)
         x = self.relu12(x)
-        x = self.linear13(x)
-        x = self.relu13(x)
         x = self.linear11(x)
         x = self.relu11(x)
 

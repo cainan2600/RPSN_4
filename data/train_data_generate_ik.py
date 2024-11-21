@@ -148,11 +148,11 @@ def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
 if __name__ == "__main__":
 
-    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/5000-fk/train'
-    file_name_txt = 'train_dataset_5000.txt'
-    file_name_tensor = 'train_dataset_5000.pt'
+    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/1000/train'
+    file_name_txt = 'train_dataset_1000.txt'
+    file_name_tensor = 'train_dataset_1000.pt'
 
-    data, data_tensor = data_generate(5000)
+    data, data_tensor = data_generate(1000)
 
     save_data(data, save_dir_train, file_name_txt)
     save_data_tensor(data_tensor, save_dir_train, file_name_tensor)

@@ -10,7 +10,6 @@ from lib.IK_loss import calculate_IK_loss
 
 from lib.FK import get_zong_t
 
-
 def data_generate(i):
     data = []
     a_IK = torch.tensor([0, -0.6127, -0.57155, 0, 0, 0])

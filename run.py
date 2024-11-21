@@ -6,8 +6,8 @@ import numpy as np
 
 import argparse
 from torch.utils.data import Dataset, DataLoader, TensorDataset
-from data.data_yanlong import train_dataset, test_dataset
-from models import MLP_3, MLP_6, MLP_12, MLP_18
+
+from models import MLP_3, MLP_6, MLP_9, MLP_12
 from lib.trans_all import *
 from lib import IK, IK_loss, planner_loss
 import torch
@@ -23,25 +23,28 @@ class main():
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
         self.parser.add_argument('--learning_rate', type=float, default=0.005, help='learning rate (default: 0.003)')
-        self.parser.add_argument('--epochs', type=int, default=10, help='gradient clip value (default: 300)')
+        self.parser.add_argument('--epochs', type=int, default=200, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
-        self.parser.add_argument('--num_train', type=int, default=2000)
+        self.parser.add_argument('--num_train', type=int, default=1000)
+        self.parser.add_argument('--num_test', type=int, default=300)
         self.args = self.parser.parse_args()
 
         # 使用cuda!!!!!!!!!!!!!!!未补齐
         # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # 训练集数据导入
-        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/train/train_dataset_5000.pt')
-        self.data_train = TensorDataset(self.load_train_data[:self.args.num_train])
+        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_5000.pt')
+        self.data_loader_train_dipan = torch.load("/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_dipan_5000.pt")
+        self.data_train = TensorDataset(self.load_train_data[:self.args.num_train], self.data_loader_train_dipan[:self.args.num_train])
         self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=True)
+
         # 测试集数据导入
         self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/test/test_dataset_400.pt')
-        self.data_test = TensorDataset(self.load_test_data)
+        self.data_test = TensorDataset(self.load_test_data[:self.args.num_test])
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test12_MLP3_new_600epco_1024hiden_2000data_fk_0.005ate_loss1_train_all_random'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test14_MLP3_100epco_128hiden_700train_300test_fk_0.002ate_lossMSE_train_all_random'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
@@ -49,7 +52,7 @@ class main():
         self.num_i = 6
         self.num_h = 128
         self.num_o = 3
-        self.model = MLP_3
+        self.model = MLP_9
         
         # 如果是接着训练则输入前面的权重路径
         self.model_path = r''
@@ -111,9 +114,12 @@ class main():
             NUM_all_have_solution = 0
 
             for data in data_loader_train:  # 读入数据开始训练
-                inputs_bxxx6 = data[0]
+                data, lables = data
+                inputs_bxxx6 = data
                 # 将batch_size中的每一组数据输入网络
+                num_zu_in_epoch = 0
                 for inputs_xx6 in inputs_bxxx6:
+                    num_zu_in_epoch += 1
                     # inputs = inputs_xx6
                     # 将7x6打乱并转换为1x42
                     inputs_xx6 = inputs_xx6[torch.randperm(inputs_xx6.size(0))]
@@ -123,7 +129,8 @@ class main():
 
 
                     intermediate_outputs = model(inputs)
-                    # print(intermediate_outputs.size())
+                    intermediate_outputs_list = intermediate_outputs.detach().numpy()
+                    # print(intermediate_outputs_list)
 
                     # # 将1x42输入转为7x1x6,
                     # input_tar = shaping_inputs_1xx_to_xx1x6(inputs, num_i) # 得到变换矩阵
@@ -150,6 +157,8 @@ class main():
                     # 计算 IK_loss_batch
                     IK_loss_batch = torch.tensor(0.0, requires_grad=True)
                     IK_loss2 = torch.tensor(0.0, requires_grad=True)
+                    IK_loss3 = torch.tensor(0.0, requires_grad=True)
+                    loss_fn = torch.nn.MSELoss()
 
                     num_all_have_solution = 0
                     num_not_all_0 = 0
@@ -178,22 +187,36 @@ class main():
                             # 有/无错误打印
                             num_incorrect = num_incorrect + num_NOError1
                             num_correct = num_correct + num_NOError2
+                        # else:
+                        #     IK_loss1 = IK_loss1 + 0
+                        #     IK_loss_batch = IK_loss_batch + IK_loss1
 
                     # 不是每一组都有解即为失败
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
+                        IK_loss2 = IK_loss2 + 0
                     else:
-                        IK_loss2 = IK_loss2 + 10
-
-                        IK_loss_batch = IK_loss_batch + IK_loss2
+                        IK_loss2 = IK_loss2 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 400
+                        # IK_loss2 = IK_loss2 + 1
+                    IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
+
+                    if 0<intermediate_outputs_list[1]<4:
+                        if 0<intermediate_outputs_list[2]<2.6:
+                            IK_loss3 = IK_loss3 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 400
+                        else:
+                            IK_loss3 = IK_loss3 + 0
+                    IK_loss_batch = IK_loss_batch + IK_loss3
+
                     IK_loss_batch.retain_grad()
 
                     optimizer.zero_grad()  # 梯度初始化为零，把loss关于weight的导数变成0
 
                     # 定义总loss函数
-                    loss = IK_loss_batch
+                    loss = IK_loss_batch / len(input_tar)
                     loss.retain_grad()
+
+                    make_dot(loss).view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:
