@@ -133,7 +133,7 @@ def calculate_IK(input_tar, MLP_output_base, a, d, alpha):
     nan_index = torch.isnan(t3).nonzero()
     for i in nan_index:
         the_NANLOSS_of_illegal_solution_with_num_and_Nan = the_NANLOSS_of_illegal_solution_with_num_and_Nan + \
-                                                           (abs(save_what_caused_Error2_as_Nan[i]) - torch.tensor([1])) * 1000
+                                                           (abs(save_what_caused_Error2_as_Nan[i]) - torch.tensor([1])) * 200
 
     if len(nan_index) == 8:
         aaabbb = nan_index[0].item()

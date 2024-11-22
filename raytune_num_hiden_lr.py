@@ -33,10 +33,10 @@ class main():
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
         # self.parser.add_argument('--learning_rate', type=float, default=0.002, help='learning rate (default: 0.003)')
-        self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
+        self.parser.add_argument('--epochs', type=int, default=200, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
-        self.parser.add_argument('--num_train', type=int, default=700)
-        self.parser.add_argument('--num_test', type=int, default=300)
+        self.parser.add_argument('--num_train', type=int, default=1000)
+        self.parser.add_argument('--num_test', type=int, default=400)
         self.args = self.parser.parse_args()
 
         # 使用cuda!!!!!!!!!!!!!!!未补齐
@@ -132,6 +132,8 @@ class main():
                     pinjie2 = torch.cat([torch.zeros(2).detach(), pinjie1])
                     outputs = torch.cat([outputs, pinjie2.unsqueeze(0)], dim=0)
 
+                    outputs_tensor = outputs[0]
+
                     intermediate_outputs.retain_grad()
                     outputs.retain_grad()
 
@@ -171,16 +173,16 @@ class main():
                     # 不是每一组都有解即为失败
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
-                    #     IK_loss2 = IK_loss2 + 0
-                    # else:
-                    #     IK_loss2 = IK_loss2 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 400
-                    #     # IK_loss2 = IK_loss2 + 1
-                    # IK_loss_batch = IK_loss_batch + IK_loss2
+                        IK_loss2 = IK_loss2 + 0
+                    else:
+                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * config["mse_factor"]
+                        # IK_loss2 = IK_loss2 + 1
+                    IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
                     
                     if 0<intermediate_outputs_list[1]<4:
                         if 0<intermediate_outputs_list[2]<2.6:
-                            IK_loss3 = IK_loss3 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 50
+                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * config["mse_factor"]
                         else:
                             IK_loss3 = IK_loss3 + 0
                     IK_loss_batch = IK_loss_batch + IK_loss3
@@ -253,7 +255,8 @@ if __name__ == "__main__":
 
     search_space = {
         "num_h": tune.grid_search([64, 128]),
-        "lr": tune.grid_search([0.0015, 0.003, 0.0045])
+        "lr": tune.grid_search([0.0015, 0.0045, 0.009]),
+        "mse_factor": tune.grid_search([1, 5, 10])
     }
 
     sched = AsyncHyperBandScheduler()
@@ -268,8 +271,8 @@ if __name__ == "__main__":
             # scheduler=sched
         ),
         run_config=RunConfig(
-            name="TuneTest_2loss_mse50_have_L",
-            storage_path="/home/cn/RPSN_4/work_dir/raytune_num_hiden_lr/mlp9",
+            name="TuneTest_2loss_mse400_have_L",
+            storage_path="/home/cn/RPSN_4/work_dir/raytune_num_hiden_lr_mse/mlp9-1000data",
             stop={
                 "acc": 0.8
             }
