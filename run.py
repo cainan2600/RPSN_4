@@ -216,7 +216,7 @@ class main():
                     loss = IK_loss_batch / len(input_tar)
                     loss.retain_grad()
 
-                    make_dot(loss).view()
+                    # make_dot(loss).view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:

@@ -171,16 +171,16 @@ class main():
                     # 不是每一组都有解即为失败
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
-                        IK_loss2 = IK_loss2 + 0
-                    else:
-                        IK_loss2 = IK_loss2 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 400
-                        # IK_loss2 = IK_loss2 + 1
-                    IK_loss_batch = IK_loss_batch + IK_loss2
+                    #     IK_loss2 = IK_loss2 + 0
+                    # else:
+                    #     IK_loss2 = IK_loss2 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 400
+                    #     # IK_loss2 = IK_loss2 + 1
+                    # IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
                     
                     if 0<intermediate_outputs_list[1]<4:
                         if 0<intermediate_outputs_list[2]<2.6:
-                            IK_loss3 = IK_loss3 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 400
+                            IK_loss3 = IK_loss3 + loss_fn(outputs, lables[num_zu_in_epoch - 1]) * 50
                         else:
                             IK_loss3 = IK_loss3 + 0
                     IK_loss_batch = IK_loss_batch + IK_loss3
@@ -268,7 +268,7 @@ if __name__ == "__main__":
             # scheduler=sched
         ),
         run_config=RunConfig(
-            name="TuneTest_3loss300_have_L",
+            name="TuneTest_2loss_mse50_have_L",
             storage_path="/home/cn/RPSN_4/work_dir/raytune_num_hiden_lr/mlp9",
             stop={
                 "acc": 0.8
