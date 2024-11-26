@@ -22,8 +22,8 @@ from data.data_generate_fk_ik import save_data
 class main():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description="Training MLP")
-        self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
-        self.parser.add_argument('--learning_rate', type=float, default=0.005, help='learning rate (default: 0.003)')
+        self.parser.add_argument('--batch_size', type=int, default=10, help='input batch size for training (default: 1)')
+        self.parser.add_argument('--learning_rate', type=float, default=0.0015, help='learning rate (default: 0.003)')
         self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
         self.parser.add_argument('--num_train', type=int, default=1000)
@@ -45,15 +45,15 @@ class main():
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test15_MLP9_400epco_64hiden_1000train_400test_fk_ik_0.005ate_lossMSE10_train_all_random'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test18_MLP3_400epco_128hiden_1000train_400test_fk_ik_0.0015ate_bz2_lossMSE70_train_all_random'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
         # 选择模型及参数
         self.num_i = 6
-        self.num_h = 64
+        self.num_h = 128
         self.num_o = 3
-        self.model = MLP_9
+        self.model = MLP_3
         
         # 如果是接着训练则输入前面的权重路径
         self.model_path = r''
@@ -67,6 +67,7 @@ class main():
         num_i = self.num_i
         num_h = self.num_h
         num_o = self.num_o
+        num_heads = 1
 
         NUMError1 = []
         NUMError2 = []
@@ -84,11 +85,12 @@ class main():
         # NUM_sametime_solution = []
         erro_inputs = []
         no_erro_inputs = []
+        NUM_dipan_in_tabel = []
 
         epochs = self.args.epochs
         data_loader_train = self.data_loader_train
         learning_rate = self.args.learning_rate
-        model = self.model.MLP_self(num_i , num_h, num_o) 
+        model = self.model.MLP_self(num_i , num_h, num_o, num_heads) 
         optimizer = torch.optim.Adagrad(model.parameters(), lr=learning_rate, weight_decay=0.000)  # 定义优化器
         # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.000)
         model_path = self.model_path
@@ -114,6 +116,7 @@ class main():
             num_incorrect = 0
             num_correct = 0
             NUM_all_have_solution = 0
+            num_dipan_in_tabel = 0
 
             for data in data_loader_train:  # 读入数据开始训练
                 data, lables = data
@@ -202,16 +205,18 @@ class main():
                     else:
                         if epoch == (start_epoch + epochs - 1):
                             erro_inputs.append(inputs_xx6_no_random.detach().numpy())
-                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 10
+                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 70
                         # IK_loss2 = IK_loss2 + 1
                     IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
 
                     if 0<intermediate_outputs_list[1]<4:
                         if 0<intermediate_outputs_list[2]<2.6:
-                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 10
+                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 70
+                            num_dipan_in_tabel += 1
                         else:
                             IK_loss3 = IK_loss3 + 0
+
                     IK_loss_batch = IK_loss_batch + IK_loss3
 
                     IK_loss_batch.retain_grad()
@@ -244,13 +249,15 @@ class main():
             NUMError2.append(numError2)
             NUM_incorrect.append(num_incorrect)
             NUM_correct.append(num_correct)
-            NUM_ALL_HAVE_SOLUTION.append(NUM_all_have_solution)
+            NUM_ALL_HAVE_SOLUTION.append(NUM_all_have_solution / self.args.num_train)
+            NUM_dipan_in_tabel.append(num_dipan_in_tabel)
 
             print("numError1", numError1)
             print("numError2", numError2)
             print("num_correct", num_correct)
             print("num_incorrect", num_incorrect)
             print('NUM_all_have_solution', NUM_all_have_solution)
+            print("NUM_dipan_in_tabel", num_dipan_in_tabel)
 
 
             model.eval()
@@ -307,7 +314,7 @@ class main():
 
             NUM_incorrect_test.append(num_incorrect_test)
             NUM_correct_test.append(num_correct_test)
-            NUM_ALL_HAVE_SOLUTION_test.append(NUM_all_have_solution_test)
+            NUM_ALL_HAVE_SOLUTION_test.append(NUM_all_have_solution_test / self.args.num_test)
 
 
             print('[%d,%d] loss:%.03f' % (epoch, start_epoch + epochs-1, sum_loss), "-" * 100)
@@ -323,6 +330,7 @@ class main():
         plot_train_loss(self.checkpoint_dir, start_epoch, epochs, echo_loss)
         plot_no_not_have_solution(self.checkpoint_dir, start_epoch, epochs, NUM_ALL_HAVE_SOLUTION)
         plot_no_not_have_solution_test(self.checkpoint_dir, start_epoch, epochs, NUM_ALL_HAVE_SOLUTION_test)
+        plot_dipan_in_tabel(self.checkpoint_dir, start_epoch, epochs, NUM_dipan_in_tabel)
 
 
 if __name__ == "__main__":
