@@ -133,6 +133,19 @@ def save_data(data_complite, save_dir, file_name):
                 f.write(tensor_str + '\n')
             f.write('\n')
 
+def save_MLP_output(data_complite, save_dir, file_name):
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    file_path = os.path.join(save_dir, file_name)
+
+    with open(file_path, 'w') as f:
+        for tensor_str in data_complite:
+            
+            tensor_str = ' '.join(map(str, tensor_str))  # 将 tensor 转换为字符串并用空格分隔
+            f.write(tensor_str + '\n')
+        f.write('\n')
+
 def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
     if not os.path.exists(save_dir):

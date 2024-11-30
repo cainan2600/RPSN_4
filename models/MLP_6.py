@@ -4,9 +4,10 @@ import torch.nn.functional as F
 
 
 class MLP_self(nn.Module):
-    def __init__(self, num_i, num_h, num_o):
+    def __init__(self, num_i, num_h, num_o, num_heads):
         super(MLP_self, self).__init__()
 
+        self.attention = nn.MultiheadAttention(embed_dim=num_i, num_heads=num_heads, batch_first=True)  
 
         self.linear1 = torch.nn.Linear(num_i, num_h) # 6x64
         self.relu1 = torch.nn.ReLU()        
@@ -25,6 +26,9 @@ class MLP_self(nn.Module):
         self.dropout = torch.nn.Dropout(0.5)
 
     def forward(self, input):
+
+        attn_output, _ = self.attention(input, input, input)
+        input = input + attn_output
 
         x = self.linear1(input)
         x = self.relu1(x)        

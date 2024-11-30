@@ -1,0 +1,2 @@
+acc,timestamp,checkpoint_dir_name,done,training_iteration,trial_id,date,time_this_iter_s,time_total_s,pid,hostname,node_ip,time_since_restore,iterations_since_restore
+0.4725,1732606142,,False,1,12e26_00000,2024-11-26_15-29-02,13.803874015808105,13.803874015808105,240309,CNWS,222.197.197.85,13.803874015808105,1

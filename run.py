@@ -16,17 +16,19 @@ import math
 import os
 from lib.save import checkpoints
 from lib.plot import *
-from data.data_generate_fk_ik import save_data
+from data.data_generate_fk_ik import save_data, save_MLP_output
+
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 class main():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description="Training MLP")
-        self.parser.add_argument('--batch_size', type=int, default=10, help='input batch size for training (default: 1)')
-        self.parser.add_argument('--learning_rate', type=float, default=0.0015, help='learning rate (default: 0.003)')
+        self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
+        self.parser.add_argument('--learning_rate', type=float, default=0.009, help='learning rate (default: 0.003)')
         self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
-        self.parser.add_argument('--num_train', type=int, default=1000)
+        self.parser.add_argument('--num_train', type=int, default=1400)
         self.parser.add_argument('--num_test', type=int, default=400)
         self.args = self.parser.parse_args()
 
@@ -37,7 +39,7 @@ class main():
         self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_5000.pt')
         self.data_loader_train_dipan = torch.load("/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_dipan_5000.pt")
         self.data_train = TensorDataset(self.load_train_data[:self.args.num_train], self.data_loader_train_dipan[:self.args.num_train])
-        self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=True)
+        self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=False)
 
         # 测试集数据导入
         self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/test/test_dataset_400.pt')
@@ -45,7 +47,7 @@ class main():
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test18_MLP3_400epco_128hiden_1000train_400test_fk_ik_0.0015ate_bz2_lossMSE70_train_all_random'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test21_MLP3_400epco_128hiden_1400train_400test_fk_ik_0.009ate_bz5_patience10_lossMSE55_shuffle_F_train_all_random'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
@@ -86,6 +88,9 @@ class main():
         erro_inputs = []
         no_erro_inputs = []
         NUM_dipan_in_tabel = []
+        NET_output = []
+        NUM_correct_but_dipan_in_tabel = []
+
 
         epochs = self.args.epochs
         data_loader_train = self.data_loader_train
@@ -93,6 +98,7 @@ class main():
         model = self.model.MLP_self(num_i , num_h, num_o, num_heads) 
         optimizer = torch.optim.Adagrad(model.parameters(), lr=learning_rate, weight_decay=0.000)  # 定义优化器
         # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.000)
+        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.9, patience=10, min_lr=0.0005)
         model_path = self.model_path
 
         if os.path.exists(model_path):          
@@ -117,6 +123,7 @@ class main():
             num_correct = 0
             NUM_all_have_solution = 0
             num_dipan_in_tabel = 0
+            num_correct_but_dipan_in_tabel = 0
 
             for data in data_loader_train:  # 读入数据开始训练
                 data, lables = data
@@ -129,12 +136,14 @@ class main():
                     # 将7x6打乱并转换为1x42
                     inputs_xx6_no_random = inputs_xx6
                     inputs_xx6 = inputs_xx6[torch.randperm(inputs_xx6.size(0))]
-                    # # print(inputs_xx6, inputs_xx6.size())
+                    # print(inputs_xx6_no_random, inputs_xx6_no_random.size())
                     # inputs = shaping_inputs_xx6_to_1xx(inputs_xx6)
                     inputs = inputs_xx6
 
                     intermediate_outputs = model(inputs)
                     intermediate_outputs_list = intermediate_outputs.detach().numpy()
+                    if epoch == (start_epoch + epochs - 1):
+                        NET_output.append(intermediate_outputs_list)
                     # print(intermediate_outputs_list)
 
                     # 得到每个1x6的旋转矩阵(7x6)
@@ -199,20 +208,25 @@ class main():
                     # 不是每一有效点位都有解即为失败
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
+                        IK_loss2 = IK_loss2 + 0
                         if epoch == (start_epoch + epochs - 1):
                             no_erro_inputs.append(inputs_xx6_no_random.detach().numpy())
-                        IK_loss2 = IK_loss2 + 0
+
+                        if 0<intermediate_outputs_list[1]<4:
+                            if 0<intermediate_outputs_list[2]<2.6:
+                                num_correct_but_dipan_in_tabel += 1
+
                     else:
                         if epoch == (start_epoch + epochs - 1):
                             erro_inputs.append(inputs_xx6_no_random.detach().numpy())
-                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 70
+                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 55
                         # IK_loss2 = IK_loss2 + 1
                     IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
 
                     if 0<intermediate_outputs_list[1]<4:
                         if 0<intermediate_outputs_list[2]<2.6:
-                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 70
+                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 55
                             num_dipan_in_tabel += 1
                         else:
                             IK_loss3 = IK_loss3 + 0
@@ -228,7 +242,7 @@ class main():
                     loss.retain_grad()
 
                     # 绘制计算图
-                    # make_dot(loss).view()
+                    make_dot(loss_fn).view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:
@@ -241,6 +255,8 @@ class main():
                     optimizer.step()  # 更新所有梯度
                     sum_loss = sum_loss + loss.data
 
+            accuracy = NUM_all_have_solution / self.args.num_train
+            scheduler.step(accuracy)
             echo_loss.append(sum_loss / (len(data_loader_train)))
             # echo_loss.append(sum_loss)
             # print(len(data_loader_train))
@@ -251,6 +267,7 @@ class main():
             NUM_correct.append(num_correct)
             NUM_ALL_HAVE_SOLUTION.append(NUM_all_have_solution / self.args.num_train)
             NUM_dipan_in_tabel.append(num_dipan_in_tabel)
+            NUM_correct_but_dipan_in_tabel.append(num_correct_but_dipan_in_tabel)
 
             print("numError1", numError1)
             print("numError2", numError2)
@@ -258,6 +275,10 @@ class main():
             print("num_incorrect", num_incorrect)
             print('NUM_all_have_solution', NUM_all_have_solution)
             print("NUM_dipan_in_tabel", num_dipan_in_tabel)
+            print("NUM_correct_but_dipan_in_tabel", num_correct_but_dipan_in_tabel)
+
+            current_lr = optimizer.param_groups[0]['lr']
+            print(f"Current Learning Rate: {current_lr}")
 
 
             model.eval()
@@ -323,6 +344,7 @@ class main():
         # 分开保存最后一轮中错误和正确的数据
         save_data(no_erro_inputs, self.checkpoint_dir, "save_no_erro_data")
         save_data(erro_inputs, self.checkpoint_dir, "save_erro_data")
+        save_MLP_output(NET_output, self.checkpoint_dir, "NET_output")
 
         # 画图
         plot_IK_solution(self.checkpoint_dir, start_epoch, epochs, len(self.data_test), NUM_incorrect_test, NUM_correct_test)
@@ -331,7 +353,7 @@ class main():
         plot_no_not_have_solution(self.checkpoint_dir, start_epoch, epochs, NUM_ALL_HAVE_SOLUTION)
         plot_no_not_have_solution_test(self.checkpoint_dir, start_epoch, epochs, NUM_ALL_HAVE_SOLUTION_test)
         plot_dipan_in_tabel(self.checkpoint_dir, start_epoch, epochs, NUM_dipan_in_tabel)
-
+        plot_correct_but_dipan_in_tabel(self.checkpoint_dir, start_epoch, epochs, NUM_correct_but_dipan_in_tabel)
 
 if __name__ == "__main__":
     a = main()

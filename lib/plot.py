@@ -172,3 +172,19 @@ def plot_dipan_in_tabel(checkpoint_dir, start_epoch, epochs, NUM_dipan_in_tabel)
         os.makedirs(checkpoint_dir)
     file_path = os.path.join(checkpoint_dir, 'NUM_dipan_in_tabel.png')
     plt.savefig(file_path)
+
+def plot_correct_but_dipan_in_tabel(checkpoint_dir, start_epoch, epochs, NUM_correct_but_dipan_in_tabel):
+    draw_epochs = list(range(start_epoch, start_epoch + epochs))
+    plt.figure()
+
+    plt.plot(draw_epochs, NUM_correct_but_dipan_in_tabel, 'r-', label='NUM_correct_but_dipan_in_tabel')
+
+    plt.xlabel('Epoch')
+    plt.ylabel('Value')
+    plt.title('NUM_correct_but_dipan_in_tabel')
+    plt.legend()
+
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+    file_path = os.path.join(checkpoint_dir, 'NUM_correct_but_dipan_in_tabel.png')
+    plt.savefig(file_path)
