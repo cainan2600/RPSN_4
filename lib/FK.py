@@ -2,57 +2,27 @@ import numpy as np
 import math
  
  
-def Link_Transformation(last_i,i,a_list,alpha_list,d_list,theta_list):
-    """
-    标准DH
-    """
-    i = i  # 下面使用的i-1表示列表的第i-1个数，注意同DH参数里的i-1区别
-    T_martix = np.mat(np.zeros((4,4)))
-    
-    T_martix[0,0] = np.cos(theta_list[i-1])
-    T_martix[0,1] = -1*np.sin(theta_list[i-1])*np.cos(alpha_list[i-1])
-    T_martix[0,2] = np.sin(theta_list[i-1])*np.sin(alpha_list[i-1])
-    T_martix[0,3] = a_list[i-1]*np.cos(theta_list[i-1])
-    
-    T_martix[1,0] = np.sin(theta_list[i-1])
-    T_martix[1,1] = np.cos(theta_list[i-1])*np.cos(alpha_list[i-1])
-    T_martix[1,2] = -1*np.cos(theta_list[i-1])*np.sin(alpha_list[i-1])
-    T_martix[1,3] = a_list[i-1]*np.sin(theta_list[i-1])
-    
-    T_martix[2,0] = 0
-    T_martix[2,1] = np.sin(alpha_list[i-1])
-    T_martix[2,2] = np.cos(alpha_list[i-1])
-    T_martix[2,3] = d_list[i-1]
-    
-    T_martix[3,0] = 0
-    T_martix[3,1] = 0 
-    T_martix[3,2] = 0
-    T_martix[3,3] = 1
-    
-    return T_martix
-
 # def Link_Transformation(last_i,i,a_list,alpha_list,d_list,theta_list):
 #     """
-#     改进DH
+#     标准DH
 #     """
 #     i = i  # 下面使用的i-1表示列表的第i-1个数，注意同DH参数里的i-1区别
 #     T_martix = np.mat(np.zeros((4,4)))
     
-
 #     T_martix[0,0] = np.cos(theta_list[i-1])
-#     T_martix[0,1] = -1*np.sin(theta_list[i-1])
-#     T_martix[0,2] = 0
-#     T_martix[0,3] = a_list[i-1]
+#     T_martix[0,1] = -1*np.sin(theta_list[i-1])*np.cos(alpha_list[i-1])
+#     T_martix[0,2] = np.sin(theta_list[i-1])*np.sin(alpha_list[i-1])
+#     T_martix[0,3] = a_list[i-1]*np.cos(theta_list[i-1])
     
-#     T_martix[1,0] = np.sin(theta_list[i-1])*np.cos(alpha_list[i-1])
+#     T_martix[1,0] = np.sin(theta_list[i-1])
 #     T_martix[1,1] = np.cos(theta_list[i-1])*np.cos(alpha_list[i-1])
-#     T_martix[1,2] = -1*np.sin(alpha_list[i-1])
-#     T_martix[1,3] = -1*np.sin(alpha_list[i-1])*d_list[i-1]
+#     T_martix[1,2] = -1*np.cos(theta_list[i-1])*np.sin(alpha_list[i-1])
+#     T_martix[1,3] = a_list[i-1]*np.sin(theta_list[i-1])
     
-#     T_martix[2,0] = np.sin(theta_list[i-1])*np.sin(alpha_list[i-1])
-#     T_martix[2,1] = np.cos(theta_list[i-1])*np.sin(alpha_list[i-1])
+#     T_martix[2,0] = 0
+#     T_martix[2,1] = np.sin(alpha_list[i-1])
 #     T_martix[2,2] = np.cos(alpha_list[i-1])
-#     T_martix[2,3] = np.cos(alpha_list[i-1])*d_list[i-1]
+#     T_martix[2,3] = d_list[i-1]
     
 #     T_martix[3,0] = 0
 #     T_martix[3,1] = 0 
@@ -60,6 +30,36 @@ def Link_Transformation(last_i,i,a_list,alpha_list,d_list,theta_list):
 #     T_martix[3,3] = 1
     
 #     return T_martix
+
+def Link_Transformation(last_i,i,a_list,alpha_list,d_list,theta_list):
+    """
+    改进DH
+    """
+    i = i  # 下面使用的i-1表示列表的第i-1个数，注意同DH参数里的i-1区别
+    T_martix = np.mat(np.zeros((4,4)))
+    
+
+    T_martix[0,0] = np.cos(theta_list[i-1])
+    T_martix[0,1] = -1*np.sin(theta_list[i-1])
+    T_martix[0,2] = 0
+    T_martix[0,3] = a_list[i-1]
+    
+    T_martix[1,0] = np.sin(theta_list[i-1])*np.cos(alpha_list[i-1])
+    T_martix[1,1] = np.cos(theta_list[i-1])*np.cos(alpha_list[i-1])
+    T_martix[1,2] = -1*np.sin(alpha_list[i-1])
+    T_martix[1,3] = -1*np.sin(alpha_list[i-1])*d_list[i-1]
+    
+    T_martix[2,0] = np.sin(theta_list[i-1])*np.sin(alpha_list[i-1])
+    T_martix[2,1] = np.cos(theta_list[i-1])*np.sin(alpha_list[i-1])
+    T_martix[2,2] = np.cos(alpha_list[i-1])
+    T_martix[2,3] = np.cos(alpha_list[i-1])*d_list[i-1]
+    
+    T_martix[3,0] = 0
+    T_martix[3,1] = 0 
+    T_martix[3,2] = 0
+    T_martix[3,3] = 1
+    
+    return T_martix
  
  
 def get_zong_t(a, d, alpha, theta):
@@ -91,18 +91,18 @@ if __name__ == "__main__":
     # d_IK = [0.1807, 0, 0, 0.17415, 0.11985, 0.11655] 
     # alpha_IK = [math.pi / 2, 0, 0, math.pi / 2, -math.pi / 2, 0]
 
-    # # realman_改进DH
-    # a_IK = [0, 0, 0.256, 0, 0, 0]
-    # d_IK = [0.2405, 0, 0, 0.210, 0, 0.144] 
-    # alpha_IK = [0, math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2]
+    # realman_改进DH
+    a_IK = [0, 0, 0.256, 0, 0, 0]
+    d_IK = [0.2405, 0, 0, 0.210, 0, 0.144] 
+    alpha_IK = [0, math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2]
 
-    # realman_标准DH
-    a_IK = [0, 0.256, 0, 0, 0, 0]
-    d_IK = [0.2405, 0, 0, 0.210, 0, 0.144]
-    alpha_IK = [-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0]
+    # # realman_标准DH
+    # a_IK = [0, 0.256, 0, 0, 0, 0]
+    # d_IK = [0.2405, 0, 0, 0.210, 0, 0.144]
+    # alpha_IK = [-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0]
 
-    # theta = [0, -math.pi / 2, math.pi / 2, 0, 0, 0]
-    theta = [0, -math.pi / 2 - math.pi * 50/180, math.pi / 2 + math.pi * 110/180, 0, math.pi * 40/180, 0]
+    theta = [0, math.pi / 2, math.pi / 2, 0, 0, 0]
+    # theta = [0, -math.pi / 2 - math.pi * 50/180, math.pi / 2 + math.pi * 110/180, 0, math.pi * 40/180, 0]
     # theta = [0, 0, 0, 0, 0, 0]
     # for i in range(6):
     #     theta[i] = np.random.uniform(-np.pi, np.pi)

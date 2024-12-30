@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # 文件名，可替换为实际使用的文件名
-filename = "/home/cn/RPSN_4/work_dir/test24_MLP3_400epco_128hiden_1000train_400test_fk_ik_0.009ate_bz5_patience6_lossMSE45_shuffle_T_2relu_norm_atten/save_no_erro_data.txt"
+filename = "/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_400.txt"
 
 # 用于存储解析后的数据
 data = []
@@ -36,12 +36,12 @@ ax = df.plot.scatter(x='x', y='y', c='blue', label='Data Points')
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_title('Scatter Plot from 1400 data')
-plt.plot([0, 4, 4, 0, 0], [0, 0, 2.6, 2.6, 0], 'r')
-plt.plot([-0.4, 4.4, 4.4, -0.4, -0.4], [-0.4, -0.4, 3, 3, -0.4], 'r')
+plt.plot([-1, 1, 1, -1, -1], [-0.425, -0.425, 0.425, 0.425, -0.425], 'r')
+# plt.plot([-1.4, 1.4, 1.4, -1.4, -1.4], [-0.825 -0.825, 0.825, 0.825, -0.825], 'r')
 
 
 fig = ax.get_figure()
-fig.savefig('/home/cn/RPSN_4/work_dir/test24_MLP3_400epco_128hiden_1000train_400test_fk_ik_0.009ate_bz5_patience6_lossMSE45_shuffle_T_2relu_norm_atten/save_no_erro_data.png')
+fig.savefig('/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_400.png')
 
 plt.show()
 

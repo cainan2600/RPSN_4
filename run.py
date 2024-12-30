@@ -26,7 +26,7 @@ class main():
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
         self.parser.add_argument('--learning_rate', type=float, default=0.009, help='learning rate (default: 0.003)')
-        self.parser.add_argument('--epochs', type=int, default=300, help='gradient clip value (default: 300)')
+        self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
         self.parser.add_argument('--num_train', type=int, default=1000)
         self.parser.add_argument('--num_test', type=int, default=400)
@@ -36,8 +36,8 @@ class main():
         # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # 训练集数据导入
-        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_{}.pt'.format(self.args.num_train, self.args.num_train))
-        self.data_loader_train_dipan = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_dipan_{}.pt'.format(self.args.num_train, self.args.num_train))
+        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_{}.pt'.format(self.args.num_train, self.args.num_train))
+        self.data_loader_train_dipan = torch.load('/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_dipan_{}.pt'.format(self.args.num_train, self.args.num_train))
         # self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_5000.pt')
         # self.data_loader_train_dipan = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_dipan_5000.pt')
 
@@ -46,12 +46,12 @@ class main():
         self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=True)
 
         # 测试集数据导入
-        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/test/test_dataset_400.pt')
+        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_400.pt')
         self.data_test = TensorDataset(self.load_test_data[:self.args.num_test])
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test24_MLP3_300epco_128hiden_1000train_400test_fk_ik_0.009ate_bz5_patience6_lossMSE45_shuffle_T_2relu_norm_atten'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test1_MLP3_400epco_128hiden_1000train_400test_fk_ik_0.009ate_bz5_patience6_lossMSE45_shuffle_T_2relu_norm_atten'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
@@ -68,9 +68,9 @@ class main():
         # self.link_length = torch.tensor([0, -0.6127, -0.57155, 0, 0, 0])
         # self.link_offset = torch.tensor([0.1807, 0, 0, 0.17415, 0.11985, 0.11655])
         # self.link_twist = torch.FloatTensor([math.pi / 2, 0, 0, math.pi / 2, -math.pi / 2, 0])
-        self.link_length = torch.tensor([0, 0.256, 0, 0, 0, 0])
-        self.link_offset = torch.tensor([0.102, 0, 0, 0.210, 0, 0.115])
-        self.link_twist = torch.FloatTensor([-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0])
+        self.link_length = torch.tensor([0, 0, 0.256, 0, 0, 0])
+        self.link_offset = torch.tensor([0.2405, 0, 0, 0.210, 0, 0.274])
+        self.link_twist = torch.FloatTensor([0, math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2])
         # a_IK = [0, 0.256, 0, 0, 0, 0]
         # d_IK = [0.102, 0, 0, 0.210, 0, 0.115] 
         # alpha_IK = [-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0]
@@ -158,13 +158,13 @@ class main():
 
                     # 得到每个1x6的旋转矩阵(7x6)
                     input_tar = shaping(inputs_xx6)
-                    last_reverse = [
-                        [1,0,0,0],
-                        [0,1,0,0],
-                        [0,0,1,-0.149],
-                        [0,0,0,1]
-                    ]
-                    input_tar = input_tar * last_reverse
+                    # last_reverse = [
+                    #     [1,0,0,0],
+                    #     [0,1,0,0],
+                    #     [0,0,1,-0.149],
+                    #     [0,0,0,1]
+                    # ]
+                    # input_tar = input_tar * last_reverse
                 
                     # 将网络输出1x21转换为7x3
                     # intermediate_outputs = shaping_outputs_1xx_to_xx3(intermediate_outputs, num_i)

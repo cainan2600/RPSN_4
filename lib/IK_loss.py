@@ -35,12 +35,14 @@ def calculate_IK_loss(angle_solution, the_NANLOSS_of_illegal_solution_with_num_a
                     break
 
             if len(ls) == 6:
+                # print("对对对对对对对对", ls)
                 num_correct += 1
                 legal_solution.append(ls)
                 IK_loss = IK_loss + torch.tensor([0])
                 break
 
         if num_illegal == 8:
+            # print("错错错错错", angle_solution)
             IK_loss = IK_loss + find_closest(angle_solution, where_is_the_illegal, the_NANLOSS_of_illegal_solution_with_num_and_Nan) #!!!!!优先惩罚nan产生项，loss定义在计算过程中
 
             num_incorrect += 1

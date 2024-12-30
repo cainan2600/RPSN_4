@@ -17,7 +17,7 @@ def data_generate(i):
     data = []
     data_dipan = []
     a_IK = [0, 0, 0.256, 0, 0, 0]
-    d_IK = [0.2405, 0, 0, 0.210, 0, 0.144] 
+    d_IK = [0.2405, 0, 0, 0.210, 0, 0.274] 
     alpha_IK = [0, math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2]
     dipan_points = generrate_yuanxin(i)
     for a in range (i):
@@ -55,12 +55,12 @@ def data_generate(i):
                     angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan = calculate_IK(
                                             input_tar, MLP_output_base, a_IK, d_IK, alpha_IK
                         )
-                    print(num_Error1, num_Error2)
+                    # print(num_Error1, num_Error2)
                     IK_loss, num_incorrect, num_correct = calculate_IK_loss(
                         angle_solution, the_NANLOSS_of_illegal_solution_with_num_and_Nan
                         )
                     num_gegeg += 1
-                    print("不是吧哥们", num_gegeg)
+                    # print("不是吧哥们", num_gegeg)
                 data_echo.append(tensor)
 
             list_0 = [0, 0, 0, 0, 0, 0]
@@ -196,13 +196,13 @@ def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
 if __name__ == "__main__":
 
-    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400'
-    file_name_txt = 'test_dataset_400.txt'
-    file_name_tensor = 'test_dataset_400.pt'
-    file_name_dipan_txt = 'test_dataset_dipan_400.txt'
-    file_name_dipan_tensor = "test_dataset_dipan_400.pt"
+    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/train-1000'
+    file_name_txt = 'train_dataset_1000.txt'
+    file_name_tensor = 'train_dataset_1000.pt'
+    file_name_dipan_txt = 'train_dataset_dipan_1000.txt'
+    file_name_dipan_tensor = "train_dataset_dipan_1000.pt"
 
-    data, data_tensor, data_dipan, data_dipan_tensor = data_generate(400)
+    data, data_tensor, data_dipan, data_dipan_tensor = data_generate(1000)
 
     save_data(data, save_dir_train, file_name_txt)
     save_MLP_output(data_dipan, save_dir_train, file_name_dipan_txt)
