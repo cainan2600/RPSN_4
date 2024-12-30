@@ -1,8 +1,0 @@
-{
-  "batch_size": 5,
-  "lr": 0.009,
-  "mse_factor": 15,
-  "num_h": 128,
-  "num_train": 1400,
-  "patience": 10
-}

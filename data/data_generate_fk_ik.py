@@ -10,6 +10,8 @@ from lib.IK_loss import calculate_IK_loss
 
 from lib.FK import get_zong_t
 
+from .dipan import generrate_yuanxin
+
 
 def data_generate(i):
     data = []
@@ -17,11 +19,14 @@ def data_generate(i):
     a_IK = torch.tensor([0, -0.6127, -0.57155, 0, 0, 0])
     d_IK = torch.tensor([0.1807, 0, 0, 0.17415, 0.11985, 0.11655])
     alpha_IK = torch.FloatTensor([math.pi / 2, 0, 0, math.pi / 2, -math.pi / 2, 0])
+    dipan_points = generrate_yuanxin(i)
     for a in range (i):
         data_echo = []
         data_dipan_echo = []
         while not len(data_echo)==7:
-            yuanxin_x, yuanxin_y, yaw_yuanxin = generrate_yuanxin()
+            yuanxin_x = dipan_points[a][0]
+            yuanxin_y = dipan_points[a][1]
+            yaw_yuanxin = np.random.uniform(-np.pi, np.pi)
             yuanxin = [0, 0, yaw_yuanxin, yuanxin_x, yuanxin_y, 0]
             # yuanxin = [round(val_yuanxin, 3) for val_yuanxin in yuanxin]
             yuanxin_tensor = torch.FloatTensor([yuanxin])
@@ -60,17 +65,17 @@ def data_generate(i):
     data_tensor = torch.FloatTensor(data)
     data_dipan_tensor = torch.FloatTensor(data_dipan)
 
-    return data, data_tensor, data_dipan_tensor
+    return data, data_tensor, data_dipan, data_dipan_tensor
 
-def generrate_yuanxin():
-    yuanxin_x = np.random.uniform(-0.4, 4.4)
-    yuanxin_y = np.random.uniform(-0.4, 3.0)
-    if 0 <= yuanxin_x <= 4:
-        while 0 <= yuanxin_y <= 2.6:
-            yuanxin_y = np.random.uniform(-0.4, 3.0)
-    yaw_yuanxin = np.random.uniform(-np.pi, np.pi)
+# def generrate_yuanxin():
+#     yuanxin_x = np.random.uniform(-0.4, 4.4)
+#     yuanxin_y = np.random.uniform(-0.4, 3.0)
+#     if 0 <= yuanxin_x <= 4:
+#         while 0 <= yuanxin_y <= 2.6:
+#             yuanxin_y = np.random.uniform(-0.4, 3.0)
+#     yaw_yuanxin = np.random.uniform(-np.pi, np.pi)
 
-    return yuanxin_x, yuanxin_y, yaw_yuanxin
+#     return yuanxin_x, yuanxin_y, yaw_yuanxin
 
 
 def generrate_dian_fk(a_IK, d_IK, alpha_IK, yuanxin_x, yuanxin_y):
@@ -156,13 +161,15 @@ def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
 if __name__ == "__main__":
 
-    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random-with-dipan/train'
-    file_name_txt = 'train_dataset_5000.txt'
-    file_name_tensor = 'train_dataset_5000.pt'
-    file_name_dipan_tensor = "train_dataset_dipan_5000.pt"
+    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-2000'
+    file_name_txt = 'train_dataset_2000.txt'
+    file_name_tensor = 'train_dataset_2000.pt'
+    file_name_dipan_txt = 'train_dataset_dipan_2000.txt'
+    file_name_dipan_tensor = "train_dataset_dipan_2000.pt"
 
-    data, data_tensor, data_dipan_tensor = data_generate(5000)
+    data, data_tensor, data_dipan, data_dipan_tensor = data_generate(2000)
 
     save_data(data, save_dir_train, file_name_txt)
+    save_MLP_output(data_dipan, save_dir_train, file_name_dipan_txt)
     save_data_tensor(data_tensor, save_dir_train, file_name_tensor)
     save_data_tensor(data_dipan_tensor, save_dir_train, file_name_dipan_tensor)

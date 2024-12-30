@@ -1,6 +1,0 @@
-{
-  "lr": 0.009,
-  "mse_factor": 70,
-  "num_h": 128,
-  "num_train": 1000
-}

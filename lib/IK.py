@@ -44,143 +44,101 @@ def calculate_IK(input_tar, MLP_output_base, a, d, alpha):
     pz = TT[2, 3]
 
     # 求角1
-    m = d[5] * ay - py
-    n = ax * d[5] - px
-    if m ** 2 + n ** 2 - (d[3]) ** 2 >= 0:
-        theta11 = atan2(m, n) - atan2(d[3], torch.sqrt((m ** 2 + n ** 2 - (d[3]) ** 2)))
-        theta12 = atan2(m, n) - atan2(d[3], -torch.sqrt((m ** 2 + n ** 2 - (d[3]) ** 2)))
-
-        t1 = torch.cat([theta11.repeat(4), theta12.repeat(4)], dim=0)
-
-    else:
-        angle_solution = torch.unsqueeze(((d[3]) ** 2 - m ** 2 - n ** 2), 0)
-
-        num_Error1 += 1
-
-        return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
-
-    # 求角5
-    theta51 = torch.acos(ax * sin(theta11) - ay * cos(theta11))
-    theta52 = -torch.acos(ax * sin(theta11) - ay * cos(theta11))
-    theta53 = torch.acos(ax * sin(theta12) - ay * cos(theta12))
-    theta54 = -torch.acos(ax * sin(theta12) - ay * cos(theta12))
-    t5 = torch.stack([theta51, theta51, theta52, theta52, theta53, theta53, theta54, theta54], 0)
+    m = py - ay*d[5]
+    n = px - ax*d[5]
+    theta11 = atan2(m, n)
+    t1 = torch.stack([theta11, theta11, theta11, theta11, theta11, theta11, theta11, theta11], 0)
 
     # 求角6
-    mm = nx * sin(t1[0]) - ny * cos(t1[0])
-    nn = ox * sin(t1[0]) - oy * cos(t1[0])
-    t61 = atan2(mm, nn) - atan2(sin(t5[0]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[1]) - ny * cos(t1[1])
-    nn = ox * sin(t1[1]) - oy * cos(t1[1])
-    t62 = atan2(mm, nn) - atan2(sin(t5[1]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[2]) - ny * cos(t1[2])
-    nn = ox * sin(t1[2]) - oy * cos(t1[2])
-    t63 = atan2(mm, nn) - atan2(sin(t5[2]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[3]) - ny * cos(t1[3])
-    nn = ox * sin(t1[3]) - oy * cos(t1[3])
-    t64 = atan2(mm, nn) - atan2(sin(t5[3]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[4]) - ny * cos(t1[4])
-    nn = ox * sin(t1[4]) - oy * cos(t1[4])
-    t65 = atan2(mm, nn) - atan2(sin(t5[4]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[5]) - ny * cos(t1[5])
-    nn = ox * sin(t1[5]) - oy * cos(t1[5])
-    t66 = atan2(mm, nn) - atan2(sin(t5[5]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[6]) - ny * cos(t1[6])
-    nn = ox * sin(t1[6]) - oy * cos(t1[6])
-    t67 = atan2(mm, nn) - atan2(sin(t5[6]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[7]) - ny * cos(t1[7])
-    nn = ox * sin(t1[7]) - oy * cos(t1[7])
-    t68 = atan2(mm, nn) - atan2(sin(t5[7]), torch.tensor(0.0))
-    t6 = torch.stack([t61, t62, t63, t64, t65, t66, t67, t68], 0)
-
-    # 求角3
-
-    m = [0, 0, 0, 0, 0, 0, 0, 0]
-    n = [0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(8):
-        m[i] = d[4] * (sin(t6[i]) * (nx * cos(t1[i]) + ny * sin(t1[i])) + cos(t6[i]) * (
-                ox * cos(t1[i]) + oy * sin(t1[i]))) - d[5] * (ax * cos(t1[i]) + ay * sin(t1[i])) + px * cos(
-            t1[i]) + py * sin(t1[i])
-        n[i] = pz - d[0] - az * d[5] + d[4] * (oz * cos(t6[i]) + nz * sin(t6[i]))
-
-    # try:
-    t31 = torch.acos((m[0] ** 2 + n[0] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t32 = -torch.acos((m[0] ** 2 + n[0] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t33 = torch.acos((m[2] ** 2 + n[2] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t34 = -torch.acos((m[2] ** 2 + n[2] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t35 = torch.acos((m[4] ** 2 + n[4] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t36 = -torch.acos((m[4] ** 2 + n[4] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t37 = torch.acos((m[6] ** 2 + n[6] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t38 = -torch.acos((m[6] ** 2 + n[6] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t3 = torch.stack([t31, t32, t33, t34, t35, t36, t37, t38], 0)
-
-    save_what_caused_Error2_as_Nan.append((m[0] ** 2 + n[0] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[0] ** 2 + n[0] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[2] ** 2 + n[2] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[2] ** 2 + n[2] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[4] ** 2 + n[4] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[4] ** 2 + n[4] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[6] ** 2 + n[6] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    save_what_caused_Error2_as_Nan.append((m[6] ** 2 + n[6] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-
-    nan_index = torch.isnan(t3).nonzero()
-    for i in nan_index:
-        the_NANLOSS_of_illegal_solution_with_num_and_Nan = the_NANLOSS_of_illegal_solution_with_num_and_Nan + \
-                                                           (abs(save_what_caused_Error2_as_Nan[i]) - torch.tensor([1])) * 200
-
-    if len(nan_index) == 8:
-        aaabbb = nan_index[0].item()
-        cccddd = (m[aaabbb] ** 2 + n[aaabbb] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2])
-        angle_solution = (abs(cccddd) - torch.tensor([1])) * 100
-
+    AA = nx**2 + ny**2 + nz**2 - 1
+    BB = 2*nx*ox + 2*ny*oy + 2*oz*nz
+    CC = ox**2 + oy**2 + oz**2 - 1
+    if AA == 0:
         num_Error2 += 1
 
-        # print("从角3出去的angle_solution: ", angle_solution)
-
-        return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
-
+        # return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
     else:
-        pass
+        if BB**2 - 4*AA*CC >= 0:
+            theta61 = atan2(-BB + torch.sqrt(BB**2 - 4*AA*CC), 2*AA)
+            theta62 = atan2(-BB - torch.sqrt(BB**2 - 4*AA*CC), 2*AA)
+            t6 = torch.stack([theta61, theta62, theta61, theta62, theta61, theta62, theta61, theta62], 0)
+        else:
+            angle_solution = torch.unsqueeze((BB**2 - 4*AA*CC), 0) * 100
+            num_Error1 += 1
 
-    # 求角2
-    t2 = [0, 0, 0, 0, 0, 0, 0, 0]
-    s2 = [0, 0, 0, 0, 0, 0, 0, 0]
-    c2 = [0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(8):
-        s2[i] = ((a[2] * cos(t3[i]) + a[1]) * n[i] - a[2] * sin(t3[i]) * m[i]) / (
-                a[1] ** 2 + a[2] ** 2 + 2 * a[1] * a[2] * cos(t3[i]))
-        c2[i] = (m[i] + (a[2] * sin(t3[i]) * s2[i])) / (a[2] * cos(t3[i]) + a[1])
-
-    t20 = atan2(s2[0], c2[0])
-    t21 = atan2(s2[1], c2[1])
-    t22 = atan2(s2[2], c2[2])
-    t23 = atan2(s2[3], c2[3])
-    t24 = atan2(s2[4], c2[4])
-    t25 = atan2(s2[5], c2[5])
-    t26 = atan2(s2[6], c2[6])
-    t27 = atan2(s2[7], c2[7])
-
-    t2 = torch.stack([t20, t21, t22, t23, t24, t25, t26, t27], 0)
-
+            return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
+    
     # 求角4
-    t4 = [0, 0, 0, 0, 0, 0, 0, 0]
+    DD1 = -(oy*cos(theta11)*cos(t6[0]) + ny*cos(theta11)*sin(t6[0]) - ox*sin(theta11)*cos(t6[0]) - nx*sin(theta11)*sin(t6[0]))
+    DD2 = -(oy*cos(theta11)*cos(t6[1]) + ny*cos(theta11)*sin(t6[1]) - ox*sin(theta11)*cos(t6[1]) - nx*sin(theta11)*sin(t6[1]))
+    theta41 = torch.acos(DD1)
+    theta42 = torch.acos(DD2)
+    t4 = torch.stack([theta41, theta41, theta42, theta42, theta41, theta41, theta42, theta42], 0)
 
-    for i in range(8):
-        t4[i] = atan2(
-            -sin(t6[i]) * (nx * cos(t1[i]) + ny * sin(t1[i])) - cos(t6[i]) * (ox * cos(t1[i]) + oy * sin(t1[i])),
-            oz * cos(t6[i]) + nz * sin(t6[i])) - t2[i] - t3[i]
-    t4 = torch.stack([t4[0], t4[1], t4[2], t4[3], t4[4], t4[5], t4[6], t4[7]], 0)
-    angle_solution = torch.stack([t1, t2, t3, t4, t5, t6], 0)
-    angle_solution = torch.t(angle_solution)
+    # 求角5
+    for i in 2:
+        if sin(t4[i]) == 0:
+            num_Error1 += 1
+            return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
+        else:
+            EE1 = (ax*sin(theta11) - ay*cos(theta11)) / sin(t4[0])
+            EE2 = (ax*sin(theta11) - ay*cos(theta11)) / sin(t4[2])
+            theta51 = torch.asin(EE1)
+            theta52 = torch.asin(EE2)
+            t5 = torch.stack([theta51, theta52, theta51, theta52, theta51, theta52, theta51, theta52], 0)
+    
+    # 求角2
+    FF1 = (oz*cos(t6[0]) + nz*sin(t6[0])) / sin(t4[0])
+    FF2 = (oz*cos(t6[0]) + nz*sin(t6[0])) / sin(t4[2])
+    FF3 = (oz*cos(t6[1]) + nz*sin(t6[1])) / sin(t4[0])
+    FF4 = (oz*cos(t6[1]) + nz*sin(t6[1])) / sin(t4[2])
+
+    GG1 = (az + FF1*cos(t4[0])*sin(t5[0])) / cos(t5[0])
+    GG2 = (az + FF1*cos(t4[0])*sin(t5[1])) / cos(t5[2])
+
+    GG3 = (az + FF2*cos(t4[2])*sin(t5[0])) / cos(t5[0])
+    GG4 = (az + FF2*cos(t4[2])*sin(t5[1])) / cos(t5[2])
+
+    GG5 = (az + FF3*cos(t4[0])*sin(t5[0])) / cos(t5[0])
+    GG6 = (az + FF3*cos(t4[0])*sin(t5[1])) / cos(t5[2])
+
+    GG7 = (az + FF4*cos(t4[2])*sin(t5[0])) / cos(t5[0])
+    GG8 = (az + FF4*cos(t4[2])*sin(t5[1])) / cos(t5[2])
+
+    theta21 = torch.acos((pz - d1 - az*d6 - d4*GG1) / a3)
+    theta22 = torch.acos((pz - d1 - az*d6 - d4*GG2) / a3)
+    theta23 = torch.acos((pz - d1 - az*d6 - d4*GG3) / a3)
+    theta24 = torch.acos((pz - d1 - az*d6 - d4*GG4) / a3)
+    theta25 = torch.acos((pz - d1 - az*d6 - d4*GG5) / a3)
+    theta26 = torch.acos((pz - d1 - az*d6 - d4*GG6) / a3)
+    theta27 = torch.acos((pz - d1 - az*d6 - d4*GG7) / a3)
+    theta28 = torch.acos((pz - d1 - az*d6 - d4*GG8) / a3)
+
+    t2 = torch.stack([theta21, theta22, theta23, theta24, theta25, theta26, theta27, theta28], 0)
+
+    # 求角3
+    theta2_3_1 = atan2(FF1 / GG1)
+    theta2_3_2 = atan2(FF1 / GG2)
+    theta2_3_3 = atan2(FF2 / GG3)
+    theta2_3_4 = atan2(FF2 / GG4)
+    theta2_3_5 = atan2(FF3 / GG5)
+    theta2_3_6 = atan2(FF3 / GG6)
+    theta2_3_7 = atan2(FF4 / GG7)
+    theta2_3_8 = atan2(FF4 / GG8)
+
+    theta31 = theta2_3_1 - theta21
+    theta32 = theta2_3_1 - theta22
+    theta33 = theta2_3_1 - theta23
+    theta34 = theta2_3_1 - theta24
+    theta35 = theta2_3_1 - theta25
+    theta36 = theta2_3_1 - theta26
+    theta37 = theta2_3_1 - theta27
+    theta38 = theta2_3_1 - theta28
+
+    t3 = torch.stack([theta31, theta32, theta33, theta34, theta35, theta36, theta37, theta38], 0)
 
     return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
+
 
 def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
 
@@ -202,130 +160,98 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
     pz = TT[2, 3]
 
     # 求角1
-    m = d[5] * ay - py
-    n = ax * d[5] - px
-    if m ** 2 + n ** 2 - (d[3]) ** 2 >= 0:
-        theta11 = atan2(m, n) - atan2(d[3], torch.sqrt((m ** 2 + n ** 2 - (d[3]) ** 2)))
-        theta12 = atan2(m, n) - atan2(d[3], -torch.sqrt((m ** 2 + n ** 2 - (d[3]) ** 2)))
-
-        t1 = torch.cat([theta11.repeat(4), theta12.repeat(4)], dim=0)
-
-    else:
-        angle_solution = torch.unsqueeze(((d[3]) ** 2 - m ** 2 - n ** 2), 0)
-
-        IK_test_incorrect += 1
-
-        return angle_solution
-
-    # 求角5
-    theta51 = torch.acos(ax * sin(theta11) - ay * cos(theta11))
-    theta52 = -torch.acos(ax * sin(theta11) - ay * cos(theta11))
-    theta53 = torch.acos(ax * sin(theta12) - ay * cos(theta12))
-    theta54 = -torch.acos(ax * sin(theta12) - ay * cos(theta12))
-    t5 = torch.stack([theta51, theta51, theta52, theta52, theta53, theta53, theta54, theta54], 0)
+    m = py - ay*d[5]
+    n = px - ax*d[5]
+    theta11 = atan2(m, n)
+    t1 = torch.stack([theta11, theta11, theta11, theta11, theta11, theta11, theta11, theta11], 0)
 
     # 求角6
-    mm = nx * sin(t1[0]) - ny * cos(t1[0])
-    nn = ox * sin(t1[0]) - oy * cos(t1[0])
-    t61 = atan2(mm, nn) - atan2(sin(t5[0]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[1]) - ny * cos(t1[1])
-    nn = ox * sin(t1[1]) - oy * cos(t1[1])
-    t62 = atan2(mm, nn) - atan2(sin(t5[1]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[2]) - ny * cos(t1[2])
-    nn = ox * sin(t1[2]) - oy * cos(t1[2])
-    t63 = atan2(mm, nn) - atan2(sin(t5[2]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[3]) - ny * cos(t1[3])
-    nn = ox * sin(t1[3]) - oy * cos(t1[3])
-    t64 = atan2(mm, nn) - atan2(sin(t5[3]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[4]) - ny * cos(t1[4])
-    nn = ox * sin(t1[4]) - oy * cos(t1[4])
-    t65 = atan2(mm, nn) - atan2(sin(t5[4]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[5]) - ny * cos(t1[5])
-    nn = ox * sin(t1[5]) - oy * cos(t1[5])
-    t66 = atan2(mm, nn) - atan2(sin(t5[5]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[6]) - ny * cos(t1[6])
-    nn = ox * sin(t1[6]) - oy * cos(t1[6])
-    t67 = atan2(mm, nn) - atan2(sin(t5[6]), torch.tensor(0.0))
-
-    mm = nx * sin(t1[7]) - ny * cos(t1[7])
-    nn = ox * sin(t1[7]) - oy * cos(t1[7])
-    t68 = atan2(mm, nn) - atan2(sin(t5[7]), torch.tensor(0.0))
-    t6 = torch.stack([t61, t62, t63, t64, t65, t66, t67, t68], 0)
-
-    # 求角3
-
-    m = [0, 0, 0, 0, 0, 0, 0, 0]
-    n = [0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(8):
-        m[i] = d[4] * (sin(t6[i]) * (nx * cos(t1[i]) + ny * sin(t1[i])) + cos(t6[i]) * (
-                ox * cos(t1[i]) + oy * sin(t1[i]))) - d[5] * (ax * cos(t1[i]) + ay * sin(t1[i])) + px * cos(
-            t1[i]) + py * sin(t1[i])
-        n[i] = pz - d[0] - az * d[5] + d[4] * (oz * cos(t6[i]) + nz * sin(t6[i]))
-
-
-    # try:
-    t31 = torch.acos((m[0] ** 2 + n[0] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t32 = -torch.acos((m[0] ** 2 + n[0] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t33 = torch.acos((m[2] ** 2 + n[2] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t34 = -torch.acos((m[2] ** 2 + n[2] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t35 = torch.acos((m[4] ** 2 + n[4] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t36 = -torch.acos((m[4] ** 2 + n[4] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t37 = torch.acos((m[6] ** 2 + n[6] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t38 = -torch.acos((m[6] ** 2 + n[6] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2]))
-    t3 = torch.stack([t31, t32, t33, t34, t35, t36, t37, t38], 0)
-
-    nan_index = torch.isnan(t3).nonzero()
-
-
-    if len(nan_index) == 8:
-        aaabbb = nan_index[0].item()
-        cccddd = (m[aaabbb] ** 2 + n[aaabbb] ** 2 - a[1] ** 2 - a[2] ** 2) / (2 * a[1] * a[2])
-
-        angle_solution = (abs(cccddd) - torch.tensor([1])) * 100
-
+    AA = nx**2 + ny**2 + nz**2 - 1
+    BB = 2*nx*ox + 2*ny*oy + 2*oz*nz
+    CC = ox**2 + oy**2 + oz**2 - 1
+    if AA == 0:
         IK_test_incorrect += 1
 
-        return angle_solution
-
+        # return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
     else:
-        pass
+        if BB**2 - 4*AA*CC >= 0:
+            theta61 = atan2(-BB + torch.sqrt(BB**2 - 4*AA*CC), 2*AA)
+            theta62 = atan2(-BB - torch.sqrt(BB**2 - 4*AA*CC), 2*AA)
+            t6 = torch.stack([theta61, theta62, theta61, theta62, theta61, theta62, theta61, theta62], 0)
+        else:
+            angle_solution = torch.unsqueeze((BB**2 - 4*AA*CC), 0) * 100
+            IK_test_incorrect += 1
 
-    # 求角2
-    t2 = [0, 0, 0, 0, 0, 0, 0, 0]
-    s2 = [0, 0, 0, 0, 0, 0, 0, 0]
-    c2 = [0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(8):
-        s2[i] = ((a[2] * cos(t3[i]) + a[1]) * n[i] - a[2] * sin(t3[i]) * m[i]) / (
-                a[1] ** 2 + a[2] ** 2 + 2 * a[1] * a[2] * cos(t3[i]))
-        c2[i] = (m[i] + (a[2] * sin(t3[i]) * s2[i])) / (a[2] * cos(t3[i]) + a[1])
-
-    t20 = atan2(s2[0], c2[0])
-    t21 = atan2(s2[1], c2[1])
-    t22 = atan2(s2[2], c2[2])
-    t23 = atan2(s2[3], c2[3])
-    t24 = atan2(s2[4], c2[4])
-    t25 = atan2(s2[5], c2[5])
-    t26 = atan2(s2[6], c2[6])
-    t27 = atan2(s2[7], c2[7])
-
-    t2 = torch.stack([t20, t21, t22, t23, t24, t25, t26, t27], 0)
-
+            return angle_solution
+    
     # 求角4
-    t4 = [0, 0, 0, 0, 0, 0, 0, 0]
+    DD1 = -(oy*cos(theta11)*cos(t6[0]) + ny*cos(theta11)*sin(t6[0]) - ox*sin(theta11)*cos(t6[0]) - nx*sin(theta11)*sin(t6[0]))
+    DD2 = -(oy*cos(theta11)*cos(t6[1]) + ny*cos(theta11)*sin(t6[1]) - ox*sin(theta11)*cos(t6[1]) - nx*sin(theta11)*sin(t6[1]))
+    theta41 = torch.acos(DD1)
+    theta42 = torch.acos(DD2)
+    t4 = torch.stack([theta41, theta41, theta42, theta42, theta41, theta41, theta42, theta42], 0)
 
-    for i in range(8):
-        t4[i] = atan2(
-            -sin(t6[i]) * (nx * cos(t1[i]) + ny * sin(t1[i])) - cos(t6[i]) * (ox * cos(t1[i]) + oy * sin(t1[i])),
-            oz * cos(t6[i]) + nz * sin(t6[i])) - t2[i] - t3[i]
-    t4 = torch.stack([t4[0], t4[1], t4[2], t4[3], t4[4], t4[5], t4[6], t4[7]], 0)
-    angle_solution = torch.stack([t1, t2, t3, t4, t5, t6], 0)
-    angle_solution = torch.t(angle_solution)
+    # 求角5
+    for i in 2:
+        if sin(t4[i]) == 0:
+            IK_test_incorrect += 1
 
+            return angle_solution
+        else:
+            EE1 = (ax*sin(theta11) - ay*cos(theta11)) / sin(t4[0])
+            EE2 = (ax*sin(theta11) - ay*cos(theta11)) / sin(t4[2])
+            theta51 = torch.asin(EE1)
+            theta52 = torch.asin(EE2)
+            t5 = torch.stack([theta51, theta52, theta51, theta52, theta51, theta52, theta51, theta52], 0)
+    
+    # 求角2
+    FF1 = (oz*cos(t6[0]) + nz*sin(t6[0])) / sin(t4[0])
+    FF2 = (oz*cos(t6[0]) + nz*sin(t6[0])) / sin(t4[2])
+    FF3 = (oz*cos(t6[1]) + nz*sin(t6[1])) / sin(t4[0])
+    FF4 = (oz*cos(t6[1]) + nz*sin(t6[1])) / sin(t4[2])
+
+    GG1 = (az + FF1*cos(t4[0])*sin(t5[0])) / cos(t5[0])
+    GG2 = (az + FF1*cos(t4[0])*sin(t5[1])) / cos(t5[2])
+
+    GG3 = (az + FF2*cos(t4[2])*sin(t5[0])) / cos(t5[0])
+    GG4 = (az + FF2*cos(t4[2])*sin(t5[1])) / cos(t5[2])
+
+    GG5 = (az + FF3*cos(t4[0])*sin(t5[0])) / cos(t5[0])
+    GG6 = (az + FF3*cos(t4[0])*sin(t5[1])) / cos(t5[2])
+
+    GG7 = (az + FF4*cos(t4[2])*sin(t5[0])) / cos(t5[0])
+    GG8 = (az + FF4*cos(t4[2])*sin(t5[1])) / cos(t5[2])
+
+    theta21 = torch.acos((pz - d1 - az*d6 - d4*GG1) / a3)
+    theta22 = torch.acos((pz - d1 - az*d6 - d4*GG2) / a3)
+    theta23 = torch.acos((pz - d1 - az*d6 - d4*GG3) / a3)
+    theta24 = torch.acos((pz - d1 - az*d6 - d4*GG4) / a3)
+    theta25 = torch.acos((pz - d1 - az*d6 - d4*GG5) / a3)
+    theta26 = torch.acos((pz - d1 - az*d6 - d4*GG6) / a3)
+    theta27 = torch.acos((pz - d1 - az*d6 - d4*GG7) / a3)
+    theta28 = torch.acos((pz - d1 - az*d6 - d4*GG8) / a3)
+
+    t2 = torch.stack([theta21, theta22, theta23, theta24, theta25, theta26, theta27, theta28], 0)
+
+    # 求角3
+    theta2_3_1 = atan2(FF1 / GG1)
+    theta2_3_2 = atan2(FF1 / GG2)
+    theta2_3_3 = atan2(FF2 / GG3)
+    theta2_3_4 = atan2(FF2 / GG4)
+    theta2_3_5 = atan2(FF3 / GG5)
+    theta2_3_6 = atan2(FF3 / GG6)
+    theta2_3_7 = atan2(FF4 / GG7)
+    theta2_3_8 = atan2(FF4 / GG8)
+
+    theta31 = theta2_3_1 - theta21
+    theta32 = theta2_3_1 - theta22
+    theta33 = theta2_3_1 - theta23
+    theta34 = theta2_3_1 - theta24
+    theta35 = theta2_3_1 - theta25
+    theta36 = theta2_3_1 - theta26
+    theta37 = theta2_3_1 - theta27
+    theta38 = theta2_3_1 - theta28
+
+    t3 = torch.stack([theta31, theta32, theta33, theta34, theta35, theta36, theta37, theta38], 0)
 
     return angle_solution

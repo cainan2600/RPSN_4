@@ -26,9 +26,9 @@ class main():
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
         self.parser.add_argument('--learning_rate', type=float, default=0.009, help='learning rate (default: 0.003)')
-        self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
+        self.parser.add_argument('--epochs', type=int, default=300, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
-        self.parser.add_argument('--num_train', type=int, default=1400)
+        self.parser.add_argument('--num_train', type=int, default=1000)
         self.parser.add_argument('--num_test', type=int, default=400)
         self.args = self.parser.parse_args()
 
@@ -36,18 +36,22 @@ class main():
         # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         # 训练集数据导入
-        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_5000.pt')
-        self.data_loader_train_dipan = torch.load("/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_dipan_5000.pt")
+        self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_{}.pt'.format(self.args.num_train, self.args.num_train))
+        self.data_loader_train_dipan = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_dipan_{}.pt'.format(self.args.num_train, self.args.num_train))
+        # self.load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_5000.pt')
+        # self.data_loader_train_dipan = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_dipan_5000.pt')
+
+
         self.data_train = TensorDataset(self.load_train_data[:self.args.num_train], self.data_loader_train_dipan[:self.args.num_train])
-        self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=False)
+        self.data_loader_train = DataLoader(self.data_train, batch_size=self.args.batch_size, shuffle=True)
 
         # 测试集数据导入
-        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/test/test_dataset_400.pt')
+        self.load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/test/test_dataset_400.pt')
         self.data_test = TensorDataset(self.load_test_data[:self.args.num_test])
         self.data_loader_test = DataLoader(self.data_test, batch_size=self.args.batch_size, shuffle=False)
 
         # 定义训练权重保存文件路径
-        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test21_MLP3_400epco_128hiden_1400train_400test_fk_ik_0.009ate_bz5_patience10_lossMSE55_shuffle_F_train_all_random'
+        self.checkpoint_dir = r'/home/cn/RPSN_4/work_dir/test24_MLP3_300epco_128hiden_1000train_400test_fk_ik_0.009ate_bz5_patience6_lossMSE45_shuffle_T_2relu_norm_atten'
         # 多少伦保存一次
         self.num_epoch_save = 100
 
@@ -61,9 +65,15 @@ class main():
         self.model_path = r''
 
         # 定义DH参数
-        self.link_length = torch.tensor([0, -0.6127, -0.57155, 0, 0, 0])
-        self.link_offset = torch.tensor([0.1807, 0, 0, 0.17415, 0.11985, 0.11655])
-        self.link_twist = torch.FloatTensor([math.pi / 2, 0, 0, math.pi / 2, -math.pi / 2, 0])
+        # self.link_length = torch.tensor([0, -0.6127, -0.57155, 0, 0, 0])
+        # self.link_offset = torch.tensor([0.1807, 0, 0, 0.17415, 0.11985, 0.11655])
+        # self.link_twist = torch.FloatTensor([math.pi / 2, 0, 0, math.pi / 2, -math.pi / 2, 0])
+        self.link_length = torch.tensor([0, 0.256, 0, 0, 0, 0])
+        self.link_offset = torch.tensor([0.102, 0, 0, 0.210, 0, 0.115])
+        self.link_twist = torch.FloatTensor([-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0])
+        # a_IK = [0, 0.256, 0, 0, 0, 0]
+        # d_IK = [0.102, 0, 0, 0.210, 0, 0.115] 
+        # alpha_IK = [-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0]
 
     def train(self):
         num_i = self.num_i
@@ -98,7 +108,7 @@ class main():
         model = self.model.MLP_self(num_i , num_h, num_o, num_heads) 
         optimizer = torch.optim.Adagrad(model.parameters(), lr=learning_rate, weight_decay=0.000)  # 定义优化器
         # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.000)
-        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.9, patience=10, min_lr=0.0005)
+        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.75, patience=6, min_lr=0.002)
         model_path = self.model_path
 
         if os.path.exists(model_path):          
@@ -109,7 +119,7 @@ class main():
             loss = checkpoint['loss']
             print('-' * 100 + '\n' + f"The loading model is complete, let's start this training from the {start_epoch} epoch, the current loss is : {loss}" + '\n' + '-' * 100)
         else:
-            print('-' * 100 + '\n' + "There is no pre-trained model under the path, and the following training starts from [epoch1] after random initialization" + '\n' + '-' * 100)
+            print('-' * 120 + '\n' + "There is no pre-trained model under the path, and the following training starts from [epoch1] after random initialization" + '\n' + '-' * 120)
             start_epoch = 1
 
         # 开始训练
@@ -148,6 +158,13 @@ class main():
 
                     # 得到每个1x6的旋转矩阵(7x6)
                     input_tar = shaping(inputs_xx6)
+                    last_reverse = [
+                        [1,0,0,0],
+                        [0,1,0,0],
+                        [0,0,1,-0.149],
+                        [0,0,0,1]
+                    ]
+                    input_tar = input_tar * last_reverse
                 
                     # 将网络输出1x21转换为7x3
                     # intermediate_outputs = shaping_outputs_1xx_to_xx3(intermediate_outputs, num_i)
@@ -219,14 +236,14 @@ class main():
                     else:
                         if epoch == (start_epoch + epochs - 1):
                             erro_inputs.append(inputs_xx6_no_random.detach().numpy())
-                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 55
+                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 45
                         # IK_loss2 = IK_loss2 + 1
                     IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
 
                     if 0<intermediate_outputs_list[1]<4:
                         if 0<intermediate_outputs_list[2]<2.6:
-                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 55
+                            IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 45
                             num_dipan_in_tabel += 1
                         else:
                             IK_loss3 = IK_loss3 + 0
@@ -242,7 +259,7 @@ class main():
                     loss.retain_grad()
 
                     # 绘制计算图
-                    make_dot(loss_fn).view()
+                    # make_dot().view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:
@@ -257,6 +274,7 @@ class main():
 
             accuracy = NUM_all_have_solution / self.args.num_train
             scheduler.step(accuracy)
+
             echo_loss.append(sum_loss / (len(data_loader_train)))
             # echo_loss.append(sum_loss)
             # print(len(data_loader_train))
@@ -267,7 +285,7 @@ class main():
             NUM_correct.append(num_correct)
             NUM_ALL_HAVE_SOLUTION.append(NUM_all_have_solution / self.args.num_train)
             NUM_dipan_in_tabel.append(num_dipan_in_tabel)
-            NUM_correct_but_dipan_in_tabel.append(num_correct_but_dipan_in_tabel)
+            NUM_correct_but_dipan_in_tabel.append((NUM_all_have_solution - num_correct_but_dipan_in_tabel) / NUM_all_have_solution)
 
             print("numError1", numError1)
             print("numError2", numError2)
@@ -342,9 +360,9 @@ class main():
             print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
 
         # 分开保存最后一轮中错误和正确的数据
-        save_data(no_erro_inputs, self.checkpoint_dir, "save_no_erro_data")
-        save_data(erro_inputs, self.checkpoint_dir, "save_erro_data")
-        save_MLP_output(NET_output, self.checkpoint_dir, "NET_output")
+        save_data(no_erro_inputs, self.checkpoint_dir, "save_no_erro_data.txt")
+        save_data(erro_inputs, self.checkpoint_dir, "save_erro_data.txt")
+        save_MLP_output(NET_output, self.checkpoint_dir, "NET_output.txt")
 
         # 画图
         plot_IK_solution(self.checkpoint_dir, start_epoch, epochs, len(self.data_test), NUM_incorrect_test, NUM_correct_test)

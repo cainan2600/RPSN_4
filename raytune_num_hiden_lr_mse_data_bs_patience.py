@@ -35,7 +35,7 @@ class main():
         self.parser = argparse.ArgumentParser(description="Training MLP")
         # self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
         # self.parser.add_argument('--learning_rate', type=float, default=0.002, help='learning rate (default: 0.003)')
-        self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
+        self.parser.add_argument('--epochs', type=int, default=300, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
         # self.parser.add_argument('--num_train', type=int, default=1000)
         self.parser.add_argument('--num_test', type=int, default=400)
@@ -84,8 +84,8 @@ class main():
         epochs = self.args.epochs
 
         # data_loader_train = self.data_loader_train
-        load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_5000.pt')
-        data_loader_train_dipan = torch.load("/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan/train/train_dataset_dipan_5000.pt")
+        load_train_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_{}.pt'.format(config["num_train"], config["num_train"]))
+        data_loader_train_dipan = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/train-{}/train_dataset_dipan_{}.pt'.format(config["num_train"], config["num_train"]))
         data_train = TensorDataset(load_train_data[:config["num_train"]], data_loader_train_dipan[:config["num_train"]])
         data_loader_train = DataLoader(data_train, batch_size=config["batch_size"], shuffle=True)
 
@@ -93,7 +93,7 @@ class main():
         model = self.model.MLP_self(num_i , num_h, num_o, num_heads) 
         optimizer = torch.optim.Adagrad(model.parameters(), lr=learning_rate, weight_decay=0.000)  # 定义优化器
         # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.000)
-        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.9, patience=config["patience"], min_lr=0.0005)
+        scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.75, patience=config["patience"], min_lr=0.002)
         model_path = self.model_path
 
         if os.path.exists(model_path):          
@@ -126,6 +126,7 @@ class main():
                     num_zu_in_epoch += 1
                     # 将7x6打乱并转换为1x42
                     inputs_xx6 = inputs_xx6[torch.randperm(inputs_xx6.size(0))]
+                    # inputs_xx6 = inputs_xx6
                     inputs = inputs_xx6
 
 
@@ -185,7 +186,7 @@ class main():
                         NUM_all_have_solution += 1
                         IK_loss2 = IK_loss2 + 0
                     else:
-                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * config["mse_factor"]
+                        IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 0
                         # IK_loss2 = IK_loss2 + 1
                     IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
@@ -202,7 +203,7 @@ class main():
                     optimizer.zero_grad()  # 梯度初始化为零，把loss关于weight的导数变成0
 
                     # 定义总loss函数
-                    loss = IK_loss_batch
+                    loss = IK_loss_batch / (len(input_tar))
                     loss.retain_grad()
 
                     loss.backward()  # 反向传播求梯度
@@ -215,7 +216,7 @@ class main():
             model.eval()
 
             # data_loader_test = self.data_loader_test
-            load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-all-random/test/test_dataset_400.pt')
+            load_test_data = torch.load('/home/cn/RPSN_4/data/data_cainan/5000-fk-ik-all-random-with-dipan-norm/test/test_dataset_400.pt')
             data_test = TensorDataset(load_test_data[:self.args.num_test])
             data_loader_test = DataLoader(data_test, batch_size=config["batch_size"], shuffle=False)
 
@@ -226,6 +227,7 @@ class main():
                     inputs_bxxx6_test = data_test[0]
                     for inputs_xx6_test in inputs_bxxx6_test:
                         inputs_xx6_test = inputs_xx6_test[torch.randperm(inputs_xx6_test.size(0))]
+                        # inputs_xx6_test = inputs_xx6_test
 
                         inputs_test = inputs_xx6_test
                         intermediate_outputs_test = model(inputs_test)
@@ -271,15 +273,15 @@ if __name__ == "__main__":
 
     search_space = {
         "num_h": tune.grid_search([128]),
-        # "num_h": tune.grid_search([16, 32]),
+        # "num_h": tune.grid_search([32, 64, 128]),
         # "lr": tune.grid_search([0.0015, 0.0045, 0.009]),
         "lr": tune.grid_search([0.009]),
-        "mse_factor": tune.grid_search([40, 50, 60]),
-        # "mse_factor": tune.grid_search([65, 70, 75, 80, 90, 95]),
-        "batch_size": tune.grid_search([5, 10, 20]),
-        "patience": tune.grid_search([10]),
+        "mse_factor": tune.grid_search([100]),
+        # "mse_factor": tune.grid_search([40, 45, 50, 55, 60, 65]),
+        "batch_size": tune.grid_search([5]),
+        "patience": tune.grid_search([6]),
         # "num_train": tune.grid_search([1000])
-        "num_train": tune.grid_search([1000, 1400])
+        "num_train": tune.grid_search([1000, 1200, 1400])
     }
 
     sched = AsyncHyperBandScheduler()
@@ -294,8 +296,8 @@ if __name__ == "__main__":
             # scheduler=sched
         ),
         run_config=RunConfig(
-            name="TuneTest_3loss_no_have_L",
-            storage_path="/home/cn/RPSN_4/work_dir/raytune_num_mse_bs_data/mlp3_attn_shuffer",
+            name="TuneTest_3loss_have_L_relu_relu_atten",
+            storage_path="/home/cn/RPSN_4/work_dir/raytune_num_mse_data/mlp3_attn_shuffer_data",
             stop={
                 "acc": 0.9
             }
