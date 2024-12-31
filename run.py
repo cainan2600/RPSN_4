@@ -176,7 +176,7 @@ class main():
                     outputs = torch.cat([outputs, pinjie2.unsqueeze(0)], dim=0)
 
                     outputs_tensor = outputs[0]
-                    # print("1", outputs_tensor.size())
+                    # print("1", outputs_tensor)
 
                     intermediate_outputs.retain_grad()
                     outputs.retain_grad()
@@ -208,6 +208,7 @@ class main():
                             # 存在错误打印
                             numError1 = numError1 + num_Error1
                             numError2 = numError2 + num_Error2
+
                             # 计算单IK_loss
                             IK_loss1, num_NOError1, num_NOError2 = IK_loss.calculate_IK_loss(angle_solution, the_NANLOSS_of_illegal_solution_with_num_and_Nan)
                             num_all_have_solution = num_all_have_solution - num_NOError1
@@ -229,8 +230,8 @@ class main():
                         if epoch == (start_epoch + epochs - 1):
                             no_erro_inputs.append(inputs_xx6_no_random.detach().numpy())
 
-                        if 0<intermediate_outputs_list[1]<4:
-                            if 0<intermediate_outputs_list[2]<2.6:
+                        if -1<intermediate_outputs_list[1]<1:
+                            if -0.425<intermediate_outputs_list[2]<0.425:
                                 num_correct_but_dipan_in_tabel += 1
 
                     else:
@@ -241,8 +242,8 @@ class main():
                     IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
 
-                    if 0<intermediate_outputs_list[1]<4:
-                        if 0<intermediate_outputs_list[2]<2.6:
+                    if -1<intermediate_outputs_list[1]<1:
+                        if -0.425<intermediate_outputs_list[2]<0.425:
                             IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 45
                             num_dipan_in_tabel += 1
                         else:
@@ -257,6 +258,8 @@ class main():
                     # 定义总loss函数
                     loss = IK_loss_batch / len(input_tar)
                     loss.retain_grad()
+
+                    # assert torch.isnan(loss).sum() == 0, print(loss)
 
                     # 绘制计算图
                     # make_dot().view()
