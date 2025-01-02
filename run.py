@@ -25,7 +25,7 @@ class main():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
-        self.parser.add_argument('--learning_rate', type=float, default=0.009, help='learning rate (default: 0.003)')
+        self.parser.add_argument('--learning_rate', type=float, default=0.003, help='learning rate (default: 0.003)')
         self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
         self.parser.add_argument('--num_train', type=int, default=1000)
@@ -179,7 +179,9 @@ class main():
                     # print("1", outputs_tensor)
 
                     intermediate_outputs.retain_grad()
+                    # print(intermediate_outputs.grad)
                     outputs.retain_grad()
+                    # print(outputs.grad)
 
                     MLP_output_base = shaping(outputs)  # 对输出做shaping运算-1X6变为4X4
 
@@ -262,7 +264,7 @@ class main():
                     # assert torch.isnan(loss).sum() == 0, print(loss)
 
                     # 绘制计算图
-                    # make_dot().view()
+                    # make_dot(IK_loss1).view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:
@@ -276,7 +278,7 @@ class main():
                     sum_loss = sum_loss + loss.data
 
             accuracy = NUM_all_have_solution / self.args.num_train
-            scheduler.step(accuracy)
+            # scheduler.step(accuracy)
 
             echo_loss.append(sum_loss / (len(data_loader_train)))
             # echo_loss.append(sum_loss)
