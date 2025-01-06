@@ -261,10 +261,10 @@ class main():
                     loss = IK_loss_batch / len(input_tar)
                     loss.retain_grad()
 
-                    # assert torch.isnan(loss).sum() == 0, print(loss)
+                    # assert torch.isnan(IK_loss1).sum() == 0, print(IK_loss1)
 
                     # 绘制计算图
-                    # make_dot(IK_loss1).view()
+                    make_dot(loss).view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:

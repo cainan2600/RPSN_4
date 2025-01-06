@@ -66,9 +66,9 @@ def calculate_IK(input_tar, MLP_output_base, a, d, alpha):
         else:
             theta61 = atan2(-CC, BB)
             t6 = torch.stack([theta61, theta61, theta61, theta61, theta61, theta61, theta61, theta61], 0)
-        # t6.register_hook(save_grad('t6'))
-        # print("[grads]t6:", grads)
-        # print("角61推出来了", t6)
+            # t6.register_hook(save_grad('t6'))
+            # print("[grads]t6:", grads)
+            # print("角61推出来了", t6)
 
     else:
 
@@ -107,10 +107,11 @@ def calculate_IK(input_tar, MLP_output_base, a, d, alpha):
     t4 = torch.stack([theta41, theta41, theta42, theta42, theta41, theta41, theta42, theta42], 0)
 
     # 求角5
+    EPSILON = 1e-7
     for ii in range(3):
-        if sin(t4[ii]) == 0:
+        if sin(t4[ii]) < EPSILON:
             num_Error1 += 1
-            angle_solution = t4[ii] * 100
+            angle_solution = t4[ii] * 100 - torch.tensor([0])
             # print("角5{}推出来了".format(ii), angle_solution)
 
             return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
@@ -128,9 +129,9 @@ def calculate_IK(input_tar, MLP_output_base, a, d, alpha):
     
     # 求角2
     for iii in range(2):
-        if cos(t5[iii]) == 0:
+        if cos(t5[iii]) < EPSILON:
             num_Error1 += 1
-            angle_solution = t5[iii] * 100
+            angle_solution = t5[iii] * 100 - torch.tensor([0])
             # print("角2{}推出来了".format(iii), angle_solution)
 
             return angle_solution, num_Error1, num_Error2, the_NANLOSS_of_illegal_solution_with_num_and_Nan
@@ -262,13 +263,14 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
         if BB == 0:
             IK_test_incorrect += 1
             angle_solution = torch.tensor([100.0], requires_grad=True)
+
             return angle_solution
         else:
             theta61 = atan2(-CC, BB)
             t6 = torch.stack([theta61, theta61, theta61, theta61, theta61, theta61, theta61, theta61], 0)
-        # t6.register_hook(save_grad('t6'))
-        # print("[grads]t6:", grads)
-        # print("角61推出来了", t6)
+            # t6.register_hook(save_grad('t6'))
+            # print("[grads]t6:", grads)
+            # print("角61推出来了", t6)
 
     else:
 
@@ -298,15 +300,20 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
     DD1 = -(oy*cos(theta11)*cos(t6[0]) + ny*cos(theta11)*sin(t6[0]) - ox*sin(theta11)*cos(t6[0]) - nx*sin(theta11)*sin(t6[0]))
     DD2 = -(oy*cos(theta11)*cos(t6[1]) + ny*cos(theta11)*sin(t6[1]) - ox*sin(theta11)*cos(t6[1]) - nx*sin(theta11)*sin(t6[1]))
     # print(DD1, DD2)
+    # if DD1 > 1:
+    #     print(DD1)
+    # if DD2 > 1:
+    #     print(DD2)
     theta41 = torch.acos(DD1)
     theta42 = torch.acos(DD2)
     t4 = torch.stack([theta41, theta41, theta42, theta42, theta41, theta41, theta42, theta42], 0)
 
     # 求角5
+    EPSILON = 1e-7
     for ii in range(3):
-        if sin(t4[ii]) == 0:
+        if sin(t4[ii]) < EPSILON:
             IK_test_incorrect += 1
-            angle_solution = t4[ii] * 100
+            angle_solution = t4[ii] * 100 - torch.tensor([0])
             # print("角5{}推出来了".format(ii), angle_solution)
 
             return angle_solution
@@ -314,15 +321,19 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
     EE1 = (ax*sin(theta11) - ay*cos(theta11)) / sin(t4[0])
     EE2 = (ax*sin(theta11) - ay*cos(theta11)) / sin(t4[2])
     # print(EE1, EE2)
+    # if EE1 > 1:
+    #     print(EE1)
+    # if EE2 > 1:
+    #     print(EE2)
     theta51 = torch.asin(EE1)
     theta52 = torch.asin(EE2)
     t5 = torch.stack([theta51, theta52, theta51, theta52, theta51, theta52, theta51, theta52], 0)
     
     # 求角2
     for iii in range(2):
-        if cos(t5[iii]) == 0:
+        if cos(t5[iii]) < EPSILON:
             IK_test_incorrect += 1
-            angle_solution = t5[iii] * 100
+            angle_solution = t5[iii] * 100 - torch.tensor([0])
             # print("角2{}推出来了".format(iii), angle_solution)
 
             return angle_solution
@@ -343,6 +354,7 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
 
     GG7 = (az + FF4*cos(t4[2])*sin(t5[0])) / cos(t5[0])
     GG8 = (az + FF4*cos(t4[2])*sin(t5[1])) / cos(t5[1])
+    # print(GG1, GG2, GG3, GG4, GG5, GG6, GG7, GG8)
 
     theta21 = torch.acos((pz - d[0] - az*d[5] - d[3]*GG1) / a[2])
     theta22 = torch.acos((pz - d[0] - az*d[5] - d[3]*GG2) / a[2])
@@ -366,6 +378,7 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
 
     # t2.register_hook(save_grad('t2'))
     # print("[grads]t2:", grads["t2"])
+    # print(save_what_caused_Error2_as_Nan)
 
     nan_index = torch.isnan(t2).nonzero()
     # print(nan_index)
@@ -375,7 +388,7 @@ def calculate_IK_test(input_tar, MLP_output_base, a, d, alpha):
 
     if len(nan_index) == 8:
         GG = (GG1 + GG2 + GG3 + GG4 + GG5 + GG6 + GG7 + GG8) / 8
-        angle_solution = (abs((pz - d[0] - az*d[5] - d[3]*GG) / a[2]) - torch.tensor([1])) * 1000
+        angle_solution = (abs((pz - d[0] - az*d[5] - d[3]*GG) / a[2]) - torch.tensor([1])) * 100
 
         IK_test_incorrect += 1
 

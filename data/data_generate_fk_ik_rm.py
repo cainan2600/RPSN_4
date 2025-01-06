@@ -196,13 +196,19 @@ def save_data_tensor(data_tensor, save_dir, file_name_tensor):
 
 if __name__ == "__main__":
 
-    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/train-1000'
-    file_name_txt = 'train_dataset_1000.txt'
-    file_name_tensor = 'train_dataset_1000.pt'
-    file_name_dipan_txt = 'train_dataset_dipan_1000.txt'
-    file_name_dipan_tensor = "train_dataset_dipan_1000.pt"
+    # save_dir_train = '/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/train-1000'
+    # file_name_txt = 'train_dataset_1000.txt'
+    # file_name_tensor = 'train_dataset_1000.pt'
+    # file_name_dipan_txt = 'train_dataset_dipan_1000.txt'
+    # file_name_dipan_tensor = "train_dataset_dipan_1000.pt"
 
-    data, data_tensor, data_dipan, data_dipan_tensor = data_generate(1000)
+    save_dir_train = '/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400'
+    file_name_txt = 'test_dataset_400.txt'
+    file_name_tensor = 'test_dataset_400.pt'
+    file_name_dipan_txt = 'test_dataset_dipan_400.txt'
+    file_name_dipan_tensor = "test_dataset_dipan_400.pt"
+
+    data, data_tensor, data_dipan, data_dipan_tensor = data_generate(400)
 
     save_data(data, save_dir_train, file_name_txt)
     save_MLP_output(data_dipan, save_dir_train, file_name_dipan_txt)
