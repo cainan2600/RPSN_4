@@ -17,7 +17,7 @@ def calculate_IK_loss(angle_solution, the_NANLOSS_of_illegal_solution_with_num_a
     IK_loss = torch.tensor([0.0], requires_grad=True)
     legal_solution = []
     where_is_the_illegal = []
-    fanwei = [np.pi * 178/180, np.pi * 130/180, np.pi * 135/180, np.pi * 178/180, np.pi * 128/180, np.pi]
+    fanwei = [math.pi * 178/180, math.pi * 130/180, math.pi * 135/180, math.pi * 178/180, math.pi * 128/180, math.pi]
     if len(angle_solution) == 1:  # 判断是不是IK异常跳出的，如果是直接赋值给loss
         num_incorrect += 1
         IK_loss = IK_loss + angle_solution
@@ -27,11 +27,14 @@ def calculate_IK_loss(angle_solution, the_NANLOSS_of_illegal_solution_with_num_a
         for solution_index in range(8):
             ls = []
             for angle_index in range(6):
+                # print(angle_solution[solution_index][angle_index], fanwei[angle_index])
                 if -fanwei[angle_index] <= angle_solution[solution_index][angle_index] <= fanwei[angle_index]:
                     ls.append(angle_solution[solution_index][angle_index])
+                    # print(ls)
                 else:
                     num_illegal += 1
-                    where_is_the_illegal.append([solution_index, angle_index])                  
+                    where_is_the_illegal.append([solution_index, angle_index])
+                    # print(angle_solution[solution_index][angle_index])                  
                     break
 
             if len(ls) == 6:
@@ -58,7 +61,7 @@ def calculate_IK_loss_test(angle_solution):
     IK_loss = torch.tensor([0.0], requires_grad=True)
     legal_solution = []
     where_is_the_illegal = []
-    fanwei = [np.pi * 178/180, np.pi * 130/180, np.pi * 135/180, np.pi * 178/180, np.pi * 128/180, np.pi]
+    fanwei = [math.pi * 178/180, math.pi * 130/180, math.pi * 135/180, math.pi * 178/180, math.pi * 128/180, math.pi]
 
     if len(angle_solution) == 1:  # 判断是不是IK异常跳出的，如果是直接赋值给loss
         IK_loss_test_incorrect += 1

@@ -1,5 +1,6 @@
 import torch
 import math
+import numpy as np
 
 # def find_closest(angle_solution, where_is_the_illegal):
 
@@ -35,6 +36,8 @@ def find_closest(angle_solution, where_is_the_illegal, the_NANLOSS_of_illegal_so
 
     single_ik_loss = torch.tensor(0.0, requires_grad=True)
 
+    fanwei1 = [math.pi * 178/180, math.pi * 130/180, math.pi * 135/180, math.pi * 178/180, math.pi * 128/180, math.pi]
+
     # the_NANLOSS_of_illegal_solution_with_num_and_Nan = 0
     # print(' angle_solution', angle_solution)
     # print(' where_is_the_illegal',  where_is_the_illegal)
@@ -54,7 +57,9 @@ def find_closest(angle_solution, where_is_the_illegal, the_NANLOSS_of_illegal_so
             if there_exist_nan == 0:
                 # print(angle_solution[i][j])
                 num = angle_solution[i][j]
-                distance = abs(num) - (torch.pi)          # 计算拿出来的值距离(pi)的距离
+                tar_num = fanwei1[j]
+                distance = (abs(num) - abs(tar_num)) * 10  # 计算拿出来的值距离(pi)的距离
+                # print(distance)
                 single_ik_loss = single_ik_loss + distance
                 # print(single_ik_loss)
                 if distance < min_distance:

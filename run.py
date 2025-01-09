@@ -71,9 +71,6 @@ class main():
         self.link_length = torch.tensor([0, 0, 0.256, 0, 0, 0])
         self.link_offset = torch.tensor([0.2405, 0, 0, 0.210, 0, 0.274])
         self.link_twist = torch.FloatTensor([0, math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2])
-        # a_IK = [0, 0.256, 0, 0, 0, 0]
-        # d_IK = [0.102, 0, 0, 0.210, 0, 0.115] 
-        # alpha_IK = [-math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2, 0]
 
     def train(self):
         num_i = self.num_i
@@ -207,6 +204,7 @@ class main():
                                 self.link_offset, 
                                 self.link_twist)
                             # print("angle_solution", angle_solution, "nan_loss", the_NANLOSS_of_illegal_solution_with_num_and_Nan)
+                            # make_dot(angle_solution).view()
                             # 存在错误打印
                             numError1 = numError1 + num_Error1
                             numError2 = numError2 + num_Error2
@@ -214,6 +212,7 @@ class main():
                             # 计算单IK_loss
                             IK_loss1, num_NOError1, num_NOError2 = IK_loss.calculate_IK_loss(angle_solution, the_NANLOSS_of_illegal_solution_with_num_and_Nan)
                             num_all_have_solution = num_all_have_solution - num_NOError1
+                            # make_dot(IK_loss1).view()
 
                             # 总loss
                             IK_loss_batch = IK_loss_batch + IK_loss1
@@ -228,7 +227,7 @@ class main():
                     # 不是每一有效点位都有解即为失败
                     if num_all_have_solution == num_not_all_0:
                         NUM_all_have_solution += 1
-                        IK_loss2 = IK_loss2 + 0
+                        IK_loss2 = IK_loss2 + torch.tensor([0.0], requires_grad=True)
                         if epoch == (start_epoch + epochs - 1):
                             no_erro_inputs.append(inputs_xx6_no_random.detach().numpy())
 
@@ -241,7 +240,7 @@ class main():
                             erro_inputs.append(inputs_xx6_no_random.detach().numpy())
                         IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 45
                         # IK_loss2 = IK_loss2 + 1
-                    IK_loss_batch = IK_loss_batch + IK_loss2
+                    # IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
 
                     if -1<intermediate_outputs_list[1]<1:
@@ -249,9 +248,9 @@ class main():
                             IK_loss3 = IK_loss3 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 45
                             num_dipan_in_tabel += 1
                         else:
-                            IK_loss3 = IK_loss3 + 0
+                            IK_loss3 = IK_loss3 + torch.tensor([0.0], requires_grad=True)
 
-                    IK_loss_batch = IK_loss_batch + IK_loss3
+                    # IK_loss_batch = IK_loss_batch + IK_loss3
 
                     IK_loss_batch.retain_grad()
 
@@ -261,10 +260,10 @@ class main():
                     loss = IK_loss_batch / len(input_tar)
                     loss.retain_grad()
 
-                    # assert torch.isnan(IK_loss1).sum() == 0, print(IK_loss1)
+                    # assert torch.isnan(loss).sum() == 0
 
                     # 绘制计算图
-                    make_dot(loss).view()
+                    # make_dot(loss).view()
 
                     # 记录x轮以后网络模型checkpoint，用来查看数据流
                     if epoch % self.num_epoch_save == 0:

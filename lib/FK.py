@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     # realman_改进DH
     a_IK = [0, 0, 0.256, 0, 0, 0]
-    d_IK = [0.2405, 0, 0, 0.210, 0, 0.144] 
+    d_IK = [0.2405, 0, 0, 0.210, 0, 0.274] 
     alpha_IK = [0, math.pi / 2, 0, math.pi / 2, -math.pi / 2, math.pi / 2]
 
     # # realman_标准DH

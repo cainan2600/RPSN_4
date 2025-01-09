@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # 文件名，可替换为实际使用的文件名
-filename = "/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_400.txt"
+filename = "/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_dipan_400.txt"
 
 # 用于存储解析后的数据
 data = []
@@ -41,7 +41,7 @@ plt.plot([-1, 1, 1, -1, -1], [-0.425, -0.425, 0.425, 0.425, -0.425], 'r')
 
 
 fig = ax.get_figure()
-fig.savefig('/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_400.png')
+fig.savefig('/home/cn/RPSN_4/data/data_cainan/rm-fk-ik-all-random-with-dipan-norm/test-400/test_dataset_dipan_400.png')
 
 plt.show()
 
