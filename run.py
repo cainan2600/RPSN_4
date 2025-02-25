@@ -222,7 +222,7 @@ class main():
                             num_correct = num_correct + num_NOError2
                         # else:
                         #     IK_loss1 = IK_loss1 + 0
-                        #     IK_loss_batch = IK_loss_batch + IK_loss1
+                            # IK_loss_batch = IK_loss_batch + IK_loss1
 
                     # 不是每一有效点位都有解即为失败
                     if num_all_have_solution == num_not_all_0:
@@ -277,7 +277,7 @@ class main():
                     sum_loss = sum_loss + loss.data
 
             accuracy = NUM_all_have_solution / self.args.num_train
-            # scheduler.step(accuracy)
+            scheduler.step(accuracy)
 
             echo_loss.append(sum_loss / (len(data_loader_train)))
             # echo_loss.append(sum_loss)
