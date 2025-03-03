@@ -25,7 +25,7 @@ class main():
     def __init__(self):
         self.parser = argparse.ArgumentParser(description="Training MLP")
         self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size for training (default: 1)')
-        self.parser.add_argument('--learning_rate', type=float, default=0.003, help='learning rate (default: 0.003)')
+        self.parser.add_argument('--learning_rate', type=float, default=0.009, help='learning rate (default: 0.003)')
         self.parser.add_argument('--epochs', type=int, default=400, help='gradient clip value (default: 300)')
         self.parser.add_argument('--clip', type=float, default=1, help='gradient clip value (default: 1)')
         self.parser.add_argument('--num_train', type=int, default=1000)
@@ -240,7 +240,7 @@ class main():
                             erro_inputs.append(inputs_xx6_no_random.detach().numpy())
                         IK_loss2 = IK_loss2 + loss_fn(outputs_tensor, lables[num_zu_in_epoch - 1]) * 45
                         # IK_loss2 = IK_loss2 + 1
-                    # IK_loss_batch = IK_loss_batch + IK_loss2
+                    IK_loss_batch = IK_loss_batch + IK_loss2
                     # print(IK_loss2)
 
                     if -1<intermediate_outputs_list[1]<1:
@@ -250,7 +250,7 @@ class main():
                         else:
                             IK_loss3 = IK_loss3 + torch.tensor([0.0], requires_grad=True)
 
-                    # IK_loss_batch = IK_loss_batch + IK_loss3
+                    IK_loss_batch = IK_loss_batch + IK_loss3
 
                     IK_loss_batch.retain_grad()
 
